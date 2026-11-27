@@ -96,7 +96,7 @@ export default function InputPanel({ text, lineEnding, fileName, acceptDrops, on
     >
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-4 py-3">
         <div className="mr-auto">
-          <StepHeading n={1} title="Add your text" hint={fileName || undefined} />
+          <StepHeading n={1} title="Add your text" hint={fileName || 'Upload a file or write your own text'} />
         </div>
         <input
           ref={fileRef}
@@ -154,11 +154,13 @@ export default function InputPanel({ text, lineEnding, fileName, acceptDrops, on
             <EmptyState
               className="min-h-60"
               Icon={ClipboardPaste}
-              title="Paste text, drop a .txt or .csv file, or start with a sample"
+              title="Upload a file, or write your own text here"
+              primary={{ label: 'Upload a .txt or .csv file', onClick: () => fileRef.current?.click() }}
               onSample={onSample}
             >
-              Works on support tickets, logs and CSV exports. Emails, phones, cards, Aadhaar, PAN and IP addresses are
-              redacted as you type. Everything stays in this browser tab.
+              Choose a file (or drop one anywhere on this page), or click in this window and type or paste.
+              Emails, phones, cards, Aadhaar, PAN and IP addresses are redacted as you go. Everything stays in this
+              browser tab.
             </EmptyState>
           </div>
         )}
