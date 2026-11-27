@@ -25,38 +25,37 @@ const CASES: { Icon: LucideIcon; title: string; body: string }[] = [
   },
 ];
 
+/** Supporting content, shown below the tool. Cards are informational, so they do not react to hover. */
 export default function UseCases() {
   return (
-    <aside className="grid gap-4 lg:grid-cols-[1.4fr_1fr]" aria-label="Use cases">
+    <section className="grid gap-8 lg:grid-cols-[1.4fr_1fr]" aria-labelledby="usecases-heading">
       <div>
-        <h2 className="text-sm font-semibold">Scrub before you share</h2>
-        <p className="mt-1 text-xs text-slate-600">
+        <h2 id="usecases-heading" className="text-lg font-semibold tracking-tight">
+          Scrub before you share
+        </h2>
+        <p className="mt-1 max-w-prose text-[13px] leading-relaxed text-slate-700">
           Remove personal data from tickets, logs and exports before they reach an LLM, a vendor or a public thread.
           Review the result before sharing; detection is pattern-based.
         </p>
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {CASES.map(({ Icon, title, body }, i) => (
-            <li
-              key={title}
-              style={{ animationDelay: `${200 + i * 90}ms` }}
-              className="group animate-fade-up rounded-lg border border-slate-200 bg-white p-3 transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-md"
-            >
-              <div className="flex items-center gap-2">
-                <span className="rounded-md bg-emerald-50 p-1.5 text-emerald-700 transition duration-300 group-hover:rotate-6 group-hover:scale-110">
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          {CASES.map(({ Icon, title, body }) => (
+            <li key={title} className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-2.5">
+                <span className="rounded-md bg-emerald-50 p-1.5 text-emerald-700">
                   <Icon className="h-4 w-4" aria-hidden />
                 </span>
-                <h3 className="text-xs font-semibold">{title}</h3>
+                <h3 className="text-sm font-semibold">{title}</h3>
               </div>
-              <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{body}</p>
+              <p className="mt-2 text-[13px] leading-relaxed text-slate-700">{body}</p>
             </li>
           ))}
         </ul>
       </div>
-      <div className="animate-fade-up" style={{ animationDelay: '350ms' }}>
-        <h2 className="text-sm font-semibold">See it work</h2>
-        <p className="mb-2 mt-1 text-xs text-slate-600">The same sentence in every mode. Click a tab to pause.</p>
+      <div>
+        <h2 className="text-lg font-semibold tracking-tight">See it work</h2>
+        <p className="mb-3 mt-1 text-[13px] text-slate-700">The same sentence in every mode. Click a tab to compare.</p>
         <RedactionDemo />
       </div>
-    </aside>
+    </section>
   );
 }

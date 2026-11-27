@@ -5,7 +5,24 @@ import { clampLat, nearestPin, shortestAngle } from '../utils/globe';
 import { SCENARIOS, cameraFor } from '../data/globeScenarios';
 import { GLOBE_R, drawGlobe, type ScreenPin } from './globeRenderer';
 
-export const INTRO_STORAGE_KEY = 'pii-intro-dismissed';
+const INTRO_STORAGE_KEY = 'pii-intro-dismissed';
+
+/** Remembered across visits (localStorage); the header's Replay Intro button always brings it back. */
+export function introAlreadySeen(): boolean {
+  try {
+    return localStorage.getItem(INTRO_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markIntroSeen(): void {
+  try {
+    localStorage.setItem(INTRO_STORAGE_KEY, '1');
+  } catch {
+    /* storage blocked: the intro will just show again next visit */
+  }
+}
 
 const AUTO_MS = 5600;
 const CAMERAS = SCENARIOS.map(cameraFor);
@@ -254,7 +271,7 @@ function Globe({ active, onSelect, onDragChange }: GlobeProps) {
   }, []);
 
   return (
-    <div ref={wrapRef} className="relative mx-auto aspect-square w-full max-w-[min(74vh,560px)]">
+    <div ref={wrapRef} className="relative mx-auto aspect-square w-full max-w-[min(66vw,300px)] sm:max-w-[min(74vh,420px)] lg:max-w-[min(74vh,560px)]">
       <canvas
         ref={canvasRef}
         role="img"
@@ -353,15 +370,17 @@ export default function GlobeIntro({ onClose }: { onClose: () => void }) {
       <button
         type="button"
         onClick={close}
-        className="press fixed right-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-[#475569] bg-[#0f172a]/80 px-4 py-2 text-sm font-semibold text-[#f8fafc] backdrop-blur hover:border-[#34d399] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#34d399]"
+        className="press fixed right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-[#94a3b8] hover:bg-white/10 hover:text-[#f8fafc] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#34d399]"
       >
         Skip to Sanitizer <ArrowRight className="h-4 w-4" aria-hidden />
-        <kbd className="hidden rounded border border-[#475569] px-1.5 text-[10px] font-medium text-[#94a3b8] sm:inline">Esc</kbd>
+        <kbd className="hidden rounded border border-[#334155] px-1.5 text-[10px] font-medium text-[#94a3b8] sm:inline">Esc</kbd>
       </button>
 
-      <div className="mx-auto grid min-h-full max-w-7xl items-center gap-8 px-5 py-20 lg:grid-cols-[1.05fr_1fr] lg:py-10">
+      {/* Phones: globe first (so the main visual is above the fold), then the pitch, then the scenario card.
+          Desktop: pitch on the left, globe over scenario card on the right. */}
+      <div className="mx-auto grid min-h-full max-w-7xl items-center gap-x-10 gap-y-6 px-5 pb-10 pt-14 lg:grid-cols-[1.05fr_1fr] lg:gap-y-3 lg:py-10">
         {/* Value proposition */}
-        <div>
+        <div className="order-2 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1">
           <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-[#065f46] bg-[#022c22]/70 px-3 py-1 text-xs font-medium text-[#6ee7b7]">
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> 100% Client-Side • Zero Server Transmission
           </span>
@@ -417,8 +436,8 @@ export default function GlobeIntro({ onClose }: { onClose: () => void }) {
           </ol>
         </div>
 
-        {/* Globe + scenario */}
-        <div>
+        {/* Globe + region tabs */}
+        <div className="order-1 lg:order-none lg:col-start-2 lg:row-start-1 lg:self-end">
           <Globe active={active} onSelect={select} onDragChange={setDragging} />
 
           <div role="tablist" aria-label="Leak scenarios" className="mt-2 flex flex-wrap justify-center gap-2">
@@ -439,7 +458,10 @@ export default function GlobeIntro({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
+        </div>
 
+        {/* Scenario card */}
+        <div className="order-3 lg:order-none lg:col-start-2 lg:row-start-2 lg:self-start">
           <div key={active} role="tabpanel" className="animate-fade-up relative mt-3 overflow-hidden rounded-xl border border-white/10 bg-[#0b1426]/85 p-4 backdrop-blur">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#fda4af]">
               <TriangleAlert className="h-3.5 w-3.5 animate-pulse" aria-hidden />

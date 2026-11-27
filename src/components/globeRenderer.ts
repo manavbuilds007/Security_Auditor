@@ -14,7 +14,7 @@ import {
   type Pt,
   type Vec3,
 } from '../utils/globe';
-import { SCENARIOS } from '../data/globeScenarios';
+import { SCENARIOS, type LabelSide } from '../data/globeScenarios';
 
 /** Globe radius as a fraction of the canvas: leaves room for the halo, ring and stars. */
 export const GLOBE_R = 0.36;
@@ -22,6 +22,17 @@ export const GLOBE_R = 0.36;
 export const PROTECT_MS = 1100;
 
 const TAU = Math.PI * 2;
+const FONT_LABEL = '600 11px "Inter Variable", ui-sans-serif, system-ui, sans-serif';
+const FONT_TIP = '600 11px "Inter Variable", ui-sans-serif, system-ui, sans-serif';
+const FONT_TIP_SUB = '500 10px "Inter Variable", ui-sans-serif, system-ui, sans-serif';
+
+/** Label offsets by side: north labels sit above-left/right of the pin, south ones below. */
+const LABEL_OFFSET: Record<LabelSide, { dx: number; dy: number; align: CanvasTextAlign }> = {
+  ne: { dx: 10, dy: -10, align: 'left' },
+  nw: { dx: -10, dy: -10, align: 'right' },
+  se: { dx: 10, dy: 17, align: 'left' },
+  sw: { dx: -10, dy: 17, align: 'right' },
+};
 const ROSE = '251,113,133';
 const EMERALD = '52,211,153';
 const SKY = '125,211,252';
@@ -117,7 +128,7 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 }
 
 function tooltip(ctx: CanvasRenderingContext2D, size: number, x: number, y: number, title: string, sub: string) {
-  ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
+  ctx.font = FONT_TIP;
   const w = Math.max(ctx.measureText(title).width, ctx.measureText(sub).width) + 18;
   const h = 36;
   let tx = x + 14;
@@ -132,7 +143,7 @@ function tooltip(ctx: CanvasRenderingContext2D, size: number, x: number, y: numb
   ctx.stroke();
   ctx.fillStyle = '#f1f5f9';
   ctx.fillText(title, tx + 9, ty + 15);
-  ctx.font = '500 10px ui-sans-serif, system-ui, sans-serif';
+  ctx.font = FONT_TIP_SUB;
   ctx.fillStyle = '#94a3b8';
   ctx.fillText(sub, tx + 9, ty + 28);
 }
@@ -375,9 +386,12 @@ export function drawGlobe(ctx: CanvasRenderingContext2D, f: Frame): ScreenPin[] 
       }
       if (on && pt.depth > 0.25) {
         ctx.globalAlpha = fade;
-        ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
+        ctx.font = FONT_LABEL;
         ctx.fillStyle = blocked ? '#d1fae5' : '#ffe4e6';
-        ctx.fillText(city.city, X + 9, Y - 9);
+        const o = LABEL_OFFSET[city.label];
+        ctx.textAlign = o.align;
+        ctx.fillText(city.city, X + o.dx, Y + o.dy);
+        ctx.textAlign = 'left';
       }
     });
   });

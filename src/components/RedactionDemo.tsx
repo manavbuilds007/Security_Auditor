@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { sanitize, type RedactionMode } from '../utils/piiEngine';
 import { HOW_IT_WORKS_EXAMPLE } from '../data/sampleData';
-import { prefersReducedMotion } from '../hooks/motion';
 import { CATEGORY_STYLES } from './categoryStyles';
 
 type Phase = 'original' | RedactionMode;
@@ -21,22 +20,12 @@ const REPLACEMENTS: Record<RedactionMode, (string | undefined)[]> = {
   pseudonym: sanitize(HOW_IT_WORKS_EXAMPLE, { mode: 'pseudonym' }).sourceSegments.map((s) => s.replacement),
 };
 
-/** Auto-plays original → full → partial → pseudonym; clicking a tab takes over. */
+/** One sentence in every mode. Click a tab to switch; nothing plays on its own. */
 export default function RedactionDemo() {
   const [phase, setPhase] = useState<Phase>('original');
-  const manual = useRef(false);
-
-  useEffect(() => {
-    if (prefersReducedMotion()) return;
-    const id = window.setInterval(() => {
-      if (manual.current) return;
-      setPhase((p) => PHASES[(PHASES.findIndex((x) => x.id === p) + 1) % PHASES.length].id);
-    }, 2400);
-    return () => window.clearInterval(id);
-  }, []);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-3">
       <div role="tablist" aria-label="Redaction demo" className="flex flex-wrap gap-1">
         {PHASES.map((p) => (
           <button
@@ -44,19 +33,16 @@ export default function RedactionDemo() {
             type="button"
             role="tab"
             aria-selected={phase === p.id}
-            onClick={() => {
-              manual.current = true;
-              setPhase(p.id);
-            }}
-            className={`press rounded-full px-2.5 py-1 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-              phase === p.id ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
+            onClick={() => setPhase(p.id)}
+            className={`press rounded-full px-3 py-1 text-[13px] font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+              phase === p.id ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
             }`}
           >
             {p.label}
           </button>
         ))}
       </div>
-      <p className="mt-3 min-h-16 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-slate-800" aria-live="off">
+      <p className="mt-3 min-h-20 whitespace-pre-wrap break-words font-mono text-[13px] leading-6 text-slate-800">
         {BASE.map((s, i) => {
           if (s.kind !== 'match' || !s.type) return <span key={i}>{s.text}</span>;
           const text = phase === 'original' ? s.text : (REPLACEMENTS[phase][i] ?? s.text);

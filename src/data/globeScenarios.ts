@@ -1,7 +1,11 @@
+/** Where a pin's label sits relative to the pin, so neighbouring labels (Mumbai/Bengaluru) never collide. */
+export type LabelSide = 'ne' | 'nw' | 'se' | 'sw';
+
 export interface Hotspot {
   city: string;
   lat: number;
   lon: number;
+  label: LabelSide;
 }
 
 export interface Scenario {
@@ -20,8 +24,8 @@ export const SCENARIOS: Scenario[] = [
     id: 'india',
     region: 'India',
     cities: [
-      { city: 'Bengaluru', lat: 12.97, lon: 77.59 },
-      { city: 'Mumbai', lat: 19.08, lon: 72.88 },
+      { city: 'Bengaluru', lat: 12.97, lon: 77.59, label: 'se' },
+      { city: 'Mumbai', lat: 19.08, lon: 72.88, label: 'nw' },
     ],
     leak: 'Unmasked KYC logs and PAN / national ID spreadsheets pasted into external AI tools.',
     outcome: 'Blocked locally before upload.',
@@ -30,8 +34,8 @@ export const SCENARIOS: Scenario[] = [
     id: 'north-america',
     region: 'North America',
     cities: [
-      { city: 'San Francisco', lat: 37.77, lon: -122.42 },
-      { city: 'New York', lat: 40.71, lon: -74.01 },
+      { city: 'San Francisco', lat: 37.77, lon: -122.42, label: 'nw' },
+      { city: 'New York', lat: 40.71, lon: -74.01, label: 'ne' },
     ],
     leak: 'Customer support tickets with raw credit card numbers and emails shared with third-party vendors.',
     outcome: 'Filtered via Luhn & masked in-browser.',
@@ -40,8 +44,8 @@ export const SCENARIOS: Scenario[] = [
     id: 'europe',
     region: 'Europe',
     cities: [
-      { city: 'Frankfurt', lat: 50.11, lon: 8.68 },
-      { city: 'London', lat: 51.51, lon: -0.13 },
+      { city: 'Frankfurt', lat: 50.11, lon: 8.68, label: 'ne' },
+      { city: 'London', lat: 51.51, lon: -0.13, label: 'sw' },
     ],
     leak: 'Production server logs leaking customer IPv4/IPv6 addresses and phone numbers.',
     outcome: 'Pseudonymized consistently (USER_01, IP_01) for safe debugging.',

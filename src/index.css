@@ -1,11 +1,43 @@
 @import "tailwindcss";
 @import "./dark-theme.css";
 
+/* Self-hosted variable fonts (OFL, see src/assets/fonts). font-src 'self' in the CSP allows these. */
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("./assets/fonts/inter-latin-ext-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF,
+    U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("./assets/fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("./assets/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
   --animate-fade-up: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade-down: fade-down 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade-in: fade-in 0.35s ease-out both;
-  --animate-mark-in: mark-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-mark-in: mark-in 0.4s ease-out both;
   --animate-float: float 4s ease-in-out infinite;
   --animate-pop: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   --animate-sheen: sheen 3.5s ease-in-out infinite;
@@ -45,7 +77,7 @@
   @keyframes mark-in {
     0% {
       opacity: 0;
-      box-shadow: 0 0 0 8px color-mix(in oklab, currentColor 30%, transparent);
+      box-shadow: 0 0 0 4px color-mix(in oklab, currentColor 18%, transparent);
     }
     100% {
       opacity: 1;
@@ -109,19 +141,16 @@
   }
 }
 
-/* Tactile press feedback for buttons. */
+/* Calm, precise button feedback: colour transitions and a slight press, no hover movement. */
 @utility press {
   transition:
-    transform 0.15s ease,
+    transform 0.12s ease,
     background-color 0.2s ease,
     border-color 0.2s ease,
     color 0.2s ease,
     box-shadow 0.2s ease;
-  &:not(:disabled):hover {
-    transform: translateY(-1px);
-  }
   &:not(:disabled):active {
-    transform: translateY(0) scale(0.96);
+    transform: scale(0.97);
   }
 }
 
@@ -130,7 +159,24 @@ html {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-slate-50 font-sans text-sm leading-6 text-slate-900 antialiased;
+  font-feature-settings: "cv11", "ss01";
+  /* Quiet brand wash: the same navy / emerald / cyan as the intro. */
+  background-image:
+    radial-gradient(55% 35% at 85% -8%, rgb(14 165 233 / 0.1), transparent 70%),
+    radial-gradient(40% 30% at 0% 0%, rgb(16 185 129 / 0.08), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+.dark body {
+  background-image:
+    radial-gradient(55% 35% at 85% -8%, rgb(14 116 144 / 0.28), transparent 70%),
+    radial-gradient(40% 30% at 0% 0%, rgb(16 185 129 / 0.14), transparent 70%);
+}
+
+/* Numbers in the audit summary line up and don't jitter while counting. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 html,

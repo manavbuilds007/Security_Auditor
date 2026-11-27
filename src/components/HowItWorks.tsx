@@ -22,42 +22,52 @@ const EXAMPLES = MODES.map((m) => ({ ...m, output: sanitize(HOW_IT_WORKS_EXAMPLE
 
 export default function HowItWorks() {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white px-4 py-4" aria-labelledby="how-heading">
-      <h2 id="how-heading" className="text-base font-semibold">
+    <section aria-labelledby="how-heading">
+      <h2 id="how-heading" className="text-lg font-semibold tracking-tight">
         How it works &amp; supported PII
       </h2>
-      <p className="mt-1 text-xs text-slate-600">
+      <p className="mt-1 max-w-prose text-[13px] leading-relaxed text-slate-700">
         Detection runs entirely in your browser using pattern matching plus checksum validation. Nothing is sent
         anywhere, and no mapping between real values and tokens is stored.
       </p>
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-xl text-left text-xs">
-          <thead className="text-slate-500">
+      {/* Wide screens: a table. Phones: one stacked card per type, so nothing is cramped or scrolls sideways. */}
+      <div className="mt-4 hidden overflow-x-auto md:block">
+        <table className="w-full text-left text-[13px]">
+          <thead className="text-slate-600">
             <tr>
-              <th className="py-1.5 pr-4 font-medium">Type</th>
-              <th className="py-1.5 pr-4 font-medium">Example formats</th>
-              <th className="py-1.5 font-medium">What counts</th>
+              <th className="py-2 pr-4 font-medium">Type</th>
+              <th className="py-2 pr-4 font-medium">Example formats</th>
+              <th className="py-2 font-medium">What counts</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-200">
             {SUPPORTED.map((s) => (
               <tr key={s.name}>
-                <th scope="row" className="py-1.5 pr-4 font-medium text-slate-800">
+                <th scope="row" className="py-2 pr-4 font-medium text-slate-900">
                   {s.name}
                 </th>
-                <td className="py-1.5 pr-4 font-mono text-slate-700">{s.formats}</td>
-                <td className="py-1.5 text-slate-600">{s.check}</td>
+                <td className="py-2 pr-4 font-mono text-slate-800">{s.formats}</td>
+                <td className="py-2 text-slate-700">{s.check}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <ul className="mt-4 space-y-2 md:hidden">
+        {SUPPORTED.map((s) => (
+          <li key={s.name} className="rounded-lg border border-slate-200 bg-white p-3">
+            <p className="text-sm font-semibold text-slate-900">{s.name}</p>
+            <p className="mt-1 break-words font-mono text-[13px] text-slate-800">{s.formats}</p>
+            <p className="mt-1 text-[13px] text-slate-700">{s.check}</p>
+          </li>
+        ))}
+      </ul>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
         <div>
-          <h3 className="text-sm font-semibold">Fewer false alarms</h3>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600">
+          <h3 className="text-sm font-semibold text-slate-900">Fewer false alarms</h3>
+          <p className="mt-1 text-[13px] leading-relaxed text-slate-700">
             Long digit strings such as order IDs look like card numbers. Real cards end in a check digit (the{' '}
             <strong>Luhn</strong> check), and about 9 in 10 random 16-digit numbers fail it. Those are left
             untouched, underlined with a dashed amber line, and counted under{' '}
@@ -65,23 +75,23 @@ export default function HowItWorks() {
             the safe side. If the same digits could be several things, the more specific type wins: card, then
             Aadhaar, PAN, email, IPv6, IPv4, and finally phone.
           </p>
-          <h3 className="mt-3 text-sm font-semibold">Good to know</h3>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600">
+          <h3 className="mt-4 text-sm font-semibold text-slate-900">Good to know</h3>
+          <p className="mt-1 text-[13px] leading-relaxed text-slate-700">
             Patterns do not find names, street addresses or free-text secrets. CSV files keep their delimiters,
             quotes, rows and line endings. Always skim the result before sharing it.
           </p>
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold">Same input, three modes</h3>
-          <p className="mt-1 text-xs text-slate-500">Input</p>
-          <pre className="mt-0.5 whitespace-pre-wrap break-words rounded bg-slate-50 p-2 font-mono text-xs text-slate-700">
+          <h3 className="text-sm font-semibold text-slate-900">Same input, three modes</h3>
+          <p className="mt-1 text-xs font-medium text-slate-600">Input</p>
+          <pre className="mt-0.5 whitespace-pre-wrap break-words rounded bg-slate-100 p-2.5 font-mono text-[13px] leading-6 text-slate-800">
             {HOW_IT_WORKS_EXAMPLE}
           </pre>
           {EXAMPLES.map((e) => (
             <div key={e.mode} className="mt-2">
-              <p className="text-xs text-slate-500">{e.label}</p>
-              <pre className="mt-0.5 whitespace-pre-wrap break-words rounded bg-slate-50 p-2 font-mono text-xs text-slate-900">
+              <p className="text-xs font-medium text-slate-600">{e.label}</p>
+              <pre className="mt-0.5 whitespace-pre-wrap break-words rounded bg-slate-100 p-2.5 font-mono text-[13px] leading-6 text-slate-900">
                 {e.output}
               </pre>
             </div>

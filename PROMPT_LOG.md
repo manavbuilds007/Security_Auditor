@@ -86,8 +86,8 @@ a value-proposition overlay, Skip/Esc, session persistence and a header "Replay 
 - **Scenarios:** India (Bengaluru/Mumbai), North America (San Francisco/New York), Europe (Frankfurt/London),
   each with the leak and the outcome from the brief. The camera eases to each region (taking the short way
   round) with a slow sway so it always feels like it is revolving. They are labelled illustrative, not incidents.
-- **Dismissal/persistence:** Skip, Launch and Esc all close it; `sessionStorage` (try/catch) remembers it for
-  the session; Replay Intro reopens it and focus returns to the opener.
+- **Dismissal/persistence:** Skip, Launch and Esc all close it; `sessionStorage` (try/catch) remembered it for
+  the session (later changed to `localStorage`, see section 8); Replay Intro reopens it and focus returns to the opener.
 - **Accessibility:** `role="dialog"` + `aria-modal`, focus moved to the primary button and trapped, the
   workspace is `inert` while open, scenarios are real tabs (clicking one stops auto-advance), and under
   `prefers-reduced-motion` the globe is a static frame that redraws only on change.
@@ -124,6 +124,37 @@ Request: enhance the globe graphics and make it react to the cursor.
   rules. This does not replace looking at it: visual quality and feel were not seen.
 - **Network:** re-scanned source and bundle: no `fetch`/XHR/WebSocket/beacon, no external URLs.
 
-## 8. Verification
+## 8. Design review pass
+
+Input: a written design review (visual identity, layout, colour, motion, accessibility, phone layout, polish).
+Implemented all of it except the "single editor with inline highlighting" idea, which the review itself called a
+bigger next step (it would replace the Input and Source panes).
+
+- **Identity:** navy dark palette matching the intro (`scripts/gen-dark-theme.mjs`), emerald→cyan gradient on the
+  product name and a gradient `BrandMark` shield (also the favicon), a thin brand line under the header and a quiet
+  brand wash on the page. Fonts: Inter + JetBrains Mono, vendored (latin subsets) rather than fetched, with OFL texts.
+- **Type scale:** 16px step titles with numbered badges, 13px body/help text, 18px section titles, a 36px headline
+  audit number. Light-mode contrast was measured: `slate-400` on white is 2.56:1, so meaningful text uses
+  `slate-500` (4.76:1) or darker, help text `slate-600` (7.58:1); the dark neutrals were tuned to ≥4.5:1.
+- **Layout:** steps are now 1 Add, 2 Choose (mode + options + type chips in one card), 3 Review (summary + panes),
+  4 Copy/download. Visual weight: input and review are elevated white cards, step 2 is a tinted card, and use cases /
+  how-it-works are plain sections below the tool. Diff panes size to content between 10rem and 32rem.
+- **Colour:** seven hues (red, amber, lime, teal, sky, indigo, purple); a test asserts they are distinct and never
+  emerald/green. Phone is no longer brand-green. Highlights can show a printed type tag (`::after`). Rejected
+  look-alikes are neutral (dotted underline, info icon). "STRUCTURE CHANGED" is red and says not to share the file.
+- **Motion:** removed the floating shield/icons, pinging badge, card hover-lift, header slide, button hover-lift and
+  the looping demo (now click-to-compare). Workspace has no scroll-reveal; it remains only on the marketing sections.
+- **Accessibility:** visible help text instead of `title` tooltips for modes, options and chips; checkboxes are
+  styled `role="switch"` inputs; filtered-off chips use `slate-600` + strike-through.
+- **Phone:** badge moves to its own full-width line under the header on small screens (full wording kept); Replay
+  Intro is icon-only below `md`; mode selector stacks icon over label; the intro shows the globe first (smaller),
+  then the pitch, then the scenario card; the supported-formats table becomes stacked cards below `md`.
+- **Polish:** audit summary leads with one large "N items redacted" (extra lines only when relevant, breakdown is on
+  the type chips); intro dismissal persists in `localStorage`; Skip is a quiet ghost button; pin labels have per-city
+  placement (Mumbai up-left, Bengaluru down-right, etc.).
+- **Verification:** unit tests, type-check and build only. I had no browser tool in this session, so none of the
+  visual or phone-layout changes have been seen on screen.
+
+## 9. Verification
 
 Results of `npx vitest run`, `tsc --noEmit` and `npm run build` are recorded in the final hand-off message.

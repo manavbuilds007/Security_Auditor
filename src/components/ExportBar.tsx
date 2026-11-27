@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Check, Copy, Download } from 'lucide-react';
+import StepHeading from './StepHeading';
 
 interface Props {
   output: string;
@@ -46,38 +47,24 @@ export default function ExportBar({ output, fileName }: Props) {
   };
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white px-3 py-3" aria-label="Export">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="mr-auto min-w-48">
-          <h2 className="text-sm font-semibold">3. Copy or download the sanitized text</h2>
-          <p className="text-xs text-slate-500" aria-live="polite">
-            {empty
-              ? 'Add some text above to enable export.'
-              : failed
-                ? 'Copy was blocked by the browser. Use Download, or select the text in the Sanitized pane.'
-                : 'Created locally in your browser. Nothing is uploaded.'}
-          </p>
-        </div>
-        <button
-          type="button"
-          className={`${btn} border border-slate-300 bg-white text-slate-800 hover:bg-slate-100`}
-          onClick={copy}
-          disabled={empty}
-          title="Copy the sanitized text to your clipboard"
-        >
-          {copied ? <Check key="ok" className="h-4 w-4 animate-pop text-emerald-600" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
-          {copied ? 'Copied!' : 'Copy sanitized text'}
-        </button>
-        <button
-          type="button"
-          className={`${btn} bg-emerald-600 text-white hover:bg-emerald-700`}
-          onClick={download}
-          disabled={empty}
-          title={`Save as ${name}`}
-        >
-          <Download className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" aria-hidden /> Download {name}
-        </button>
+    <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4" aria-label="Export">
+      <div className="mr-auto min-w-52">
+        <StepHeading n={4} title="Copy or download" />
+        <p className="mt-1 text-[13px] text-slate-600" aria-live="polite">
+          {empty
+            ? 'Add some text above to enable export.'
+            : failed
+              ? 'Copy was blocked by the browser. Use Download, or select the text in the Sanitized pane.'
+              : 'Created locally in your browser. Nothing is uploaded.'}
+        </p>
       </div>
-    </section>
+      <button type="button" className={`${btn} border border-slate-300 bg-white text-slate-800 hover:bg-slate-100`} onClick={copy} disabled={empty}>
+        {copied ? <Check className="h-4 w-4 text-emerald-600" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
+        {copied ? 'Copied!' : 'Copy sanitized text'}
+      </button>
+      <button type="button" className={`${btn} bg-emerald-600 text-white hover:bg-emerald-700`} onClick={download} disabled={empty} title={`Save as ${name}`}>
+        <Download className="h-4 w-4" aria-hidden /> Download {name}
+      </button>
+    </div>
   );
 }
