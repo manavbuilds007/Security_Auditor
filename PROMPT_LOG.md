@@ -81,7 +81,7 @@ a value-proposition overlay, Skip/Esc, session persistence and a header "Replay 
   point-in-polygon, land-dot sampling) so it is unit-tested in Node (`globe.test.ts`). `GlobeIntro.tsx` draws
   it on a 2D canvas: atmosphere glow, shaded sphere, graticule that breaks behind the limb, ~1k land dots
   that fade toward the edge, and pulsing pins. No WebGL, three.js, tiles or fetched data; bundle grew ~5 kB gzip.
-- **Land data:** ten coarse continent polygons written by hand (recognisable as dots, not cartography).
+- **Land data:** eleven coarse continent polygons written by hand (recognisable as dots, not cartography).
   A test asserts known land/ocean points and that all six hotspot cities fall on land.
 - **Scenarios:** India (Bengaluru/Mumbai), North America (San Francisco/New York), Europe (Frankfurt/London),
   each with the leak and the outcome from the brief. The camera eases to each region (taking the short way
@@ -98,6 +98,32 @@ a value-proposition overlay, Skip/Esc, session persistence and a header "Replay 
 - The intro uses fixed hex colours rather than theme tokens so it looks the same in light and dark mode
   (dark mode remaps Tailwind's named colours).
 
-## 7. Verification
+## 7. Globe graphics + cursor reactivity
+
+Request: enhance the globe graphics and make it react to the cursor.
+
+- **Structure:** drawing moved to `components/globeRenderer.ts` (`drawGlobe(ctx, frame)` returns the pins'
+  screen positions); `GlobeIntro.tsx` owns the animation loop and pointer handling. New pure maths in
+  `utils/globe.ts`: great-circle `slerp`, `projectVec` (points floating above the surface), `isVisible`,
+  `pointerToLight`, `nearestPin`, `clampLat`, pre-computed coastlines and graticule.
+- **Graphics:** densified coastlines (soft wide pass + crisp thin pass), denser land dots, graticule, Fresnel-style
+  atmosphere rim and outer halo, directional lighting with a terminator, seeded parallax starfield with
+  twinkle, a tilted orbit ring whose back half is drawn behind the globe and front half in front, and leak
+  arcs lifted 20% above the surface with travelling packets. The arc and pins start red and switch to green
+  when the outcome text appears (`PROTECT_MS`), with a one-off ring burst.
+- **Cursor:** light direction and a screen-blended spotlight follow the pointer; the camera leans up to
+  ~6° toward it and the stars shift for parallax; dragging rotates (1 px = 1/R rad, latitude clamped) with
+  inertia and an exponential return to the scenario framing; hovering a pin shows a tooltip and clicking it
+  selects that scenario and stops auto-advance. Auto-advance also waits while dragging.
+- **Touch:** `touch-action: pan-y` so vertical swipes still scroll the overlay while horizontal drags rotate.
+- **Reduced motion:** no sway, pulses, inertia or auto-return; the loop redraws only when the user interacts.
+- **Verification without a browser:** `globeRenderer.test.ts` runs the real renderer against a recording
+  fake 2D context across 288 combinations (scenario, leak phase, camera angle incl. poles and the date line,
+  cursor/drag states) and fails on any non-finite number passed to a canvas call, since NaN/Infinity makes a
+  real canvas throw or drop the call. It also checks pin order/positions, red→green switching and tooltip
+  rules. This does not replace looking at it: visual quality and feel were not seen.
+- **Network:** re-scanned source and bundle: no `fetch`/XHR/WebSocket/beacon, no external URLs.
+
+## 8. Verification
 
 Results of `npx vitest run`, `tsc --noEmit` and `npm run build` are recorded in the final hand-off message.

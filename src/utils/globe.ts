@@ -18,10 +18,18 @@ export interface Camera {
   sinLat0: number;
   cosLat0: number;
   lon0: number; // radians
+  sinLon0: number;
+  cosLon0: number;
 }
 
 export function makeCamera(latDeg: number, lonDeg: number): Camera {
-  return { sinLat0: Math.sin(latDeg * RAD), cosLat0: Math.cos(latDeg * RAD), lon0: lonDeg * RAD };
+  return {
+    sinLat0: Math.sin(latDeg * RAD),
+    cosLat0: Math.cos(latDeg * RAD),
+    lon0: lonDeg * RAD,
+    sinLon0: Math.sin(lonDeg * RAD),
+    cosLon0: Math.cos(lonDeg * RAD),
+  };
 }
 
 /** Projection from pre-computed trig values (hot path: called once per land dot per frame). */
@@ -103,4 +111,113 @@ export function buildLandDots(stepDeg = 3.2): LandDot[] {
     }
   }
   return dots;
+}
+
+/* ------------------------------------------------------------------ */
+/* Pre-computed geometry                                               */
+/* ------------------------------------------------------------------ */
+
+export type GeoPt = LandDot;
+
+function geoPt(latDeg: number, lonDeg: number): GeoPt {
+  return { sinLat: Math.sin(latDeg * RAD), cosLat: Math.cos(latDeg * RAD), lon: lonDeg * RAD };
+}
+
+/** Continent outlines, edges densified so they bend with the sphere. */
+export function buildCoastlines(maxStepDeg = 3): GeoPt[][] {
+  return LAND.map((poly) => {
+    const pts: GeoPt[] = [];
+    for (let i = 0; i < poly.length; i++) {
+      const [lon1, lat1] = poly[i];
+      const [lon2, lat2] = poly[(i + 1) % poly.length];
+      const n = Math.max(1, Math.ceil(Math.max(Math.abs(lon2 - lon1), Math.abs(lat2 - lat1)) / maxStepDeg));
+      for (let k = 0; k < n; k++) pts.push(geoPt(lat1 + ((lat2 - lat1) * k) / n, lon1 + ((lon2 - lon1) * k) / n));
+    }
+    pts.push(pts[0]);
+    return pts;
+  });
+}
+
+/** Latitude every 30° and longitude every 30°, as polylines. */
+export function buildGraticule(): GeoPt[][] {
+  const lines: GeoPt[][] = [];
+  for (const lat of [-60, -30, 0, 30, 60]) {
+    const l: GeoPt[] = [];
+    for (let lon = -180; lon <= 180; lon += 5) l.push(geoPt(lat, lon));
+    lines.push(l);
+  }
+  for (let lon = -180; lon < 180; lon += 30) {
+    const l: GeoPt[] = [];
+    for (let lat = -90; lat <= 90; lat += 5) l.push(geoPt(lat, lon));
+    lines.push(l);
+  }
+  return lines;
+}
+
+/* ------------------------------------------------------------------ */
+/* Vectors: arcs above the surface, lighting, hit-testing              */
+/* ------------------------------------------------------------------ */
+
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+/** Unit vector in the Earth frame (x→lon 0, y→lon 90°E, z→north pole). */
+export function latLonToVec(latDeg: number, lonDeg: number): Vec3 {
+  const lat = latDeg * RAD;
+  const lon = lonDeg * RAD;
+  return { x: Math.cos(lat) * Math.cos(lon), y: Math.cos(lat) * Math.sin(lon), z: Math.sin(lat) };
+}
+
+/** Point `t` (0..1) along the great circle from a to b. */
+export function slerp(a: Vec3, b: Vec3, t: number): Vec3 {
+  const dot = Math.max(-1, Math.min(1, a.x * b.x + a.y * b.y + a.z * b.z));
+  const omega = Math.acos(dot);
+  if (omega < 1e-6) return { ...a };
+  const sa = Math.sin((1 - t) * omega) / Math.sin(omega);
+  const sb = Math.sin(t * omega) / Math.sin(omega);
+  return { x: sa * a.x + sb * b.x, y: sa * a.y + sb * b.y, z: sa * a.z + sb * b.z };
+}
+
+/** Projects an Earth-frame vector at radius `r` (1 = surface, >1 = floating above it). */
+export function projectVec(v: Vec3, r: number, cam: Camera, out: Pt): Pt {
+  const a = v.x * cam.cosLon0 + v.y * cam.sinLon0;
+  out.x = r * (v.y * cam.cosLon0 - v.x * cam.sinLon0);
+  out.y = r * (cam.cosLat0 * v.z - cam.sinLat0 * a);
+  out.depth = r * (cam.sinLat0 * v.z + cam.cosLat0 * a);
+  return out;
+}
+
+/** A raised point is visible if it faces us, or sticks out past the globe's silhouette. */
+export function isVisible(p: Pt): boolean {
+  return p.depth > 0 || p.x * p.x + p.y * p.y > 1;
+}
+
+export function clampLat(lat: number, min = -80, max = 80): number {
+  return Math.max(min, Math.min(max, lat));
+}
+
+/** Light direction from a pointer position on the disc (-1..1, y up): the globe is lit from the cursor. */
+export function pointerToLight(nx: number, ny: number): Vec3 {
+  const r = Math.hypot(nx, ny);
+  const k = r > 0.95 ? 0.95 / r : 1;
+  const x = nx * k;
+  const y = ny * k;
+  return { x, y, z: Math.sqrt(Math.max(0, 1 - x * x - y * y)) };
+}
+
+/** Closest item within `radius` pixels of (x, y), or null. */
+export function nearestPin<T extends { x: number; y: number }>(pins: readonly T[], x: number, y: number, radius: number): T | null {
+  let best: T | null = null;
+  let bestD = radius;
+  for (const p of pins) {
+    const d = Math.hypot(p.x - x, p.y - y);
+    if (d <= bestD) {
+      best = p;
+      bestD = d;
+    }
+  }
+  return best;
 }

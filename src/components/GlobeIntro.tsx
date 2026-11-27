@@ -1,131 +1,130 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, FileWarning, Rocket, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { prefersReducedMotion } from '../hooks/motion';
-import { buildLandDots, makeCamera, project, projectTrig, shortestAngle, type Pt } from '../utils/globe';
+import { clampLat, nearestPin, shortestAngle } from '../utils/globe';
 import { SCENARIOS, cameraFor } from '../data/globeScenarios';
+import { GLOBE_R, drawGlobe, type ScreenPin } from './globeRenderer';
 
 export const INTRO_STORAGE_KEY = 'pii-intro-dismissed';
 
-const TAU = Math.PI * 2;
 const AUTO_MS = 5600;
-const LAND_DOTS = buildLandDots();
 const CAMERAS = SCENARIOS.map(cameraFor);
+const DEFAULT_LIGHT = { x: -0.45, y: 0.5 };
+const HIT_RADIUS = 16;
 
-interface View {
-  lat: number;
-  lon: number;
+/** Cursor state shared between React event handlers and the animation loop. */
+interface Interaction {
+  /** Pointer in canvas CSS pixels; null when it is away from the globe. */
+  px: number | null;
+  py: number | null;
+  down: boolean;
+  moved: boolean;
+  startX: number;
+  startY: number;
+  lastX: number;
+  lastY: number;
+  lastT: number;
+  /** User rotation on top of the scenario camera, in degrees. It eases back to zero after release. */
+  offLon: number;
+  offLat: number;
+  velLon: number;
+  velLat: number;
+  hover: number;
 }
 
-/** Draws the whole globe with 2D-canvas orthographic projection. No textures, no network. */
-function drawGlobe(ctx: CanvasRenderingContext2D, size: number, view: View, t: number, active: number, animate: boolean) {
-  const R = size * 0.4;
-  const c = size / 2;
-  const cam = makeCamera(view.lat, view.lon);
-  const pt: Pt = { x: 0, y: 0, depth: 0 };
-  ctx.clearRect(0, 0, size, size);
-  ctx.globalAlpha = 1;
-
-  // Atmosphere glow, then the sphere.
-  let g = ctx.createRadialGradient(c, c, R * 0.95, c, c, R * 1.3);
-  g.addColorStop(0, 'rgba(56,189,248,0.28)');
-  g.addColorStop(1, 'rgba(56,189,248,0)');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(c, c, R * 1.3, 0, TAU);
-  ctx.fill();
-
-  g = ctx.createRadialGradient(c - R * 0.35, c - R * 0.4, R * 0.1, c, c, R);
-  g.addColorStop(0, '#12345c');
-  g.addColorStop(1, '#050b18');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(c, c, R, 0, TAU);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(125,211,252,0.35)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  // Graticule: one path for all lines, breaking wherever a line passes behind the globe.
-  ctx.strokeStyle = 'rgba(125,211,252,0.13)';
-  ctx.beginPath();
-  const line = (at: (i: number) => [number, number], n: number) => {
-    let pen = false;
-    for (let i = 0; i <= n; i++) {
-      const [lat, lon] = at(i);
-      const p = project(lat, lon, view.lat, view.lon);
-      if (p.depth <= 0) {
-        pen = false;
-        continue;
-      }
-      const X = c + R * p.x;
-      const Y = c - R * p.y;
-      if (pen) ctx.lineTo(X, Y);
-      else ctx.moveTo(X, Y);
-      pen = true;
-    }
-  };
-  for (const lat of [-60, -30, 0, 30, 60]) line((i) => [lat, -180 + i * 5], 72);
-  for (let lon = -180; lon < 180; lon += 30) line((i) => [-90 + i * 5, lon], 36);
-  ctx.stroke();
-
-  // Land as dots, fading toward the limb.
-  ctx.fillStyle = '#7dd3fc';
-  for (const d of LAND_DOTS) {
-    projectTrig(d.sinLat, d.cosLat, d.lon, cam, pt);
-    if (pt.depth <= 0.03) continue;
-    ctx.globalAlpha = 0.18 + 0.82 * Math.pow(pt.depth, 0.7);
-    ctx.fillRect(c + R * pt.x - 0.9, c - R * pt.y - 0.9, 1.8, 1.8);
-  }
-
-  // Alert pins: pulsing rings on every hotspot, bright + labelled for the active scenario.
-  SCENARIOS.forEach((s, si) => {
-    const on = si === active;
-    s.cities.forEach((city, ci) => {
-      const p = project(city.lat, city.lon, view.lat, view.lon);
-      if (p.depth <= 0.05) return;
-      const X = c + R * p.x;
-      const Y = c - R * p.y;
-      const fade = Math.min(1, p.depth * 3);
-      const phase = animate ? (t / 1600 + ci * 0.37) % 1 : 0.3;
-      for (const k of [0, 0.5]) {
-        const ph = (phase + k) % 1;
-        ctx.globalAlpha = fade * (1 - ph) * (on ? 0.75 : 0.25);
-        ctx.strokeStyle = '#fb7185';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(X, Y, (on ? 5 : 3) + ph * (on ? 26 : 12), 0, TAU);
-        ctx.stroke();
-      }
-      ctx.globalAlpha = fade * (on ? 1 : 0.55);
-      ctx.fillStyle = '#fb7185';
-      ctx.beginPath();
-      ctx.arc(X, Y, on ? 4.2 : 2.6, 0, TAU);
-      ctx.fill();
-      if (on) {
-        ctx.strokeStyle = '#fff1f2';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-        if (p.depth > 0.25) {
-          ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
-          ctx.fillStyle = '#ffe4e6';
-          ctx.fillText(city.city, X + 9, Y - 9);
-        }
-      }
-    });
-  });
-  ctx.globalAlpha = 1;
+interface GlobeProps {
+  active: number;
+  onSelect: (scenario: number) => void;
+  onDragChange: (dragging: boolean) => void;
 }
 
-function Globe({ active }: { active: number }) {
+function Globe({ active, onSelect, onDragChange }: GlobeProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const activeRef = useRef(active);
+  const sceneStart = useRef(performance.now());
   const dirty = useRef(true);
+  const sizeRef = useRef(0);
+  const pinsRef = useRef<ScreenPin[]>([]);
+  const it = useRef<Interaction>({
+    px: null, py: null, down: false, moved: false, startX: 0, startY: 0, lastX: 0, lastY: 0, lastT: 0,
+    offLon: 0, offLat: 0, velLon: 0, velLat: 0, hover: -1,
+  });
 
   useEffect(() => {
     activeRef.current = active;
+    sceneStart.current = performance.now();
     dirty.current = true;
   }, [active]);
+
+  const local = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
+
+  const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const { x, y } = local(e);
+    const s = it.current;
+    s.down = true;
+    s.moved = false;
+    s.startX = s.lastX = x;
+    s.startY = s.lastY = y;
+    s.lastT = performance.now();
+    s.velLon = s.velLat = 0;
+    s.px = x;
+    s.py = y;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    onDragChange(true);
+    dirty.current = true;
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const { x, y } = local(e);
+    const s = it.current;
+    s.px = e.pointerType === 'touch' && !s.down ? null : x;
+    s.py = e.pointerType === 'touch' && !s.down ? null : y;
+    dirty.current = true;
+    if (!s.down) return;
+    if (Math.hypot(x - s.startX, y - s.startY) > 5) s.moved = true;
+    const now = performance.now();
+    const dt = Math.max(1, now - s.lastT);
+    // One pixel is 1/R of a radian near the centre of an orthographic globe.
+    const k = 57.2958 / (sizeRef.current * GLOBE_R);
+    const dLon = -(x - s.lastX) * k;
+    const dLat = (y - s.lastY) * k;
+    s.offLon += dLon;
+    s.offLat = clampLat(s.offLat + dLat, -60, 60);
+    s.velLon = 0.7 * s.velLon + 0.3 * (dLon / dt);
+    s.velLat = 0.7 * s.velLat + 0.3 * (dLat / dt);
+    s.lastX = x;
+    s.lastY = y;
+    s.lastT = now;
+  };
+
+  const endDrag = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const s = it.current;
+    if (!s.down) return;
+    s.down = false;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    // A release that was not a drag, on a pin, selects that pin's scenario.
+    if (e.type === 'pointerup' && !s.moved && s.hover >= 0) {
+      const pin = pinsRef.current[s.hover];
+      if (pin) onSelect(pin.scenario);
+    }
+    // A pause before release means no fling.
+    if (performance.now() - s.lastT > 90) s.velLon = s.velLat = 0;
+    if (e.pointerType === 'touch') {
+      s.px = s.py = null;
+    }
+    onDragChange(false);
+    dirty.current = true;
+  };
+
+  const onPointerLeave = () => {
+    if (it.current.down) return;
+    it.current.px = it.current.py = null;
+    dirty.current = true;
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -134,8 +133,11 @@ function Globe({ active }: { active: number }) {
     if (!canvas || !wrap || !ctx) return;
 
     const reduced = prefersReducedMotion();
-    const view: View = { ...CAMERAS[activeRef.current] };
-    let size = 0;
+    const st = it.current;
+    const view = { ...CAMERAS[activeRef.current] };
+    const tilt = { lon: 0, lat: 0 };
+    const light = { ...DEFAULT_LIGHT };
+    let lastActive = activeRef.current;
     let raf = 0;
     let last = performance.now();
 
@@ -143,7 +145,7 @@ function Globe({ active }: { active: number }) {
       const w = Math.floor(wrap.getBoundingClientRect().width);
       if (w < 80) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      size = w;
+      sizeRef.current = w;
       canvas.width = w * dpr;
       canvas.height = w * dpr;
       canvas.style.width = `${w}px`;
@@ -159,23 +161,89 @@ function Globe({ active }: { active: number }) {
       raf = requestAnimationFrame(frame);
       const dt = Math.min(now - last, 100);
       last = now;
+      const size = sizeRef.current;
       if (!size) return;
+      const R = size * GLOBE_R;
       const target = CAMERAS[activeRef.current];
+      const inside = st.px !== null && st.py !== null;
+      const nx = inside ? (st.px! - size / 2) / R : 0;
+      const ny = inside ? (size / 2 - st.py!) / R : 0;
+      const onDisc = inside && Math.hypot(nx, ny) <= 1.15;
+
       if (reduced) {
-        // Static globe: snap to the region and only redraw when something changed.
+        // Static unless the user acts: snap to the scenario, follow the cursor directly, no inertia.
+        if (lastActive !== activeRef.current) {
+          st.offLon = st.offLat = 0;
+          lastActive = activeRef.current;
+        }
         if (!dirty.current) return;
+        dirty.current = false;
         view.lat = target.lat;
         view.lon = target.lon;
-        dirty.current = false;
-        drawGlobe(ctx, size, view, 0, activeRef.current, false);
-        return;
+        light.x = onDisc ? nx : DEFAULT_LIGHT.x;
+        light.y = onDisc ? ny : DEFAULT_LIGHT.y;
+      } else {
+        const k = 1 - Math.exp(-dt / 380);
+        view.lon += shortestAngle(view.lon, target.lon) * k;
+        view.lat += (target.lat - view.lat) * k;
+
+        if (!st.down) {
+          // Fling, then drift back to the scenario's framing.
+          st.offLon += st.velLon * dt;
+          st.offLat = clampLat(st.offLat + st.velLat * dt, -60, 60);
+          const damp = Math.exp(-dt / 450);
+          st.velLon *= damp;
+          st.velLat *= damp;
+          const back = Math.exp(-dt / 2400);
+          st.offLon *= back;
+          st.offLat *= back;
+        }
+        // Lean toward the cursor and light the globe from it.
+        const tk = 1 - Math.exp(-dt / 220);
+        const wantLon = onDisc && !st.down ? nx * 6 : 0;
+        const wantLat = onDisc && !st.down ? ny * 5 : 0;
+        tilt.lon += (wantLon - tilt.lon) * tk;
+        tilt.lat += (wantLat - tilt.lat) * tk;
+        const lk = 1 - Math.exp(-dt / 140);
+        light.x += ((onDisc ? nx : DEFAULT_LIGHT.x) - light.x) * lk;
+        light.y += ((onDisc ? ny : DEFAULT_LIGHT.y) - light.y) * lk;
       }
-      // Ease toward the active region (sweeping the long way round if needed), plus a slow sway.
-      const k = 1 - Math.exp(-dt / 380);
-      view.lon += shortestAngle(view.lon, target.lon) * k;
-      view.lat += (target.lat - view.lat) * k;
-      const sway = { lat: view.lat + 3 * Math.sin(now / 4200), lon: view.lon + 7 * Math.sin(now / 3100) };
-      drawGlobe(ctx, size, sway, now, activeRef.current, true);
+
+      const sway = reduced ? { lat: 0, lon: 0 } : { lat: 3 * Math.sin(now / 4200), lon: 7 * Math.sin(now / 3100) };
+      const frameView = {
+        lat: clampLat(view.lat + st.offLat + tilt.lat + sway.lat),
+        lon: view.lon + st.offLon + tilt.lon + sway.lon,
+      };
+
+      // Which pin is under the cursor (using last frame's positions).
+      let hover = -1;
+      if (inside && !st.down) {
+        const hit = nearestPin(
+          pinsRef.current.filter((p) => p.depth > 0.05),
+          st.px!,
+          st.py!,
+          HIT_RADIUS,
+        );
+        hover = hit ? pinsRef.current.indexOf(hit) : -1;
+      } else if (st.down) {
+        hover = st.hover; // keep so a click (no drag) still resolves to the pin it started on
+      }
+      st.hover = hover;
+      canvas.style.cursor = st.down && st.moved ? 'grabbing' : hover >= 0 ? 'pointer' : 'grab';
+
+      pinsRef.current = drawGlobe(ctx, {
+        size,
+        view: frameView,
+        t: now,
+        animate: !reduced,
+        active: activeRef.current,
+        elapsed: reduced ? Infinity : now - sceneStart.current,
+        spot: onDisc ? { x: nx, y: ny } : null,
+        light: { x: light.x, y: light.y },
+        parallax: { x: (tilt.lon + st.offLon * 0.1) / 6, y: -tilt.lat / 5 },
+        hover: st.hover,
+        dragging: st.down && st.moved,
+      });
     };
     raf = requestAnimationFrame(frame);
 
@@ -186,8 +254,19 @@ function Globe({ active }: { active: number }) {
   }, []);
 
   return (
-    <div ref={wrapRef} className="relative mx-auto aspect-square w-full max-w-[min(74vh,520px)]">
-      <canvas ref={canvasRef} className="absolute inset-0 m-auto" role="img" aria-label="Rotating wireframe globe with pulsing alert pins in India, North America and Europe" />
+    <div ref={wrapRef} className="relative mx-auto aspect-square w-full max-w-[min(74vh,560px)]">
+      <canvas
+        ref={canvasRef}
+        role="img"
+        aria-label="Interactive wireframe globe with pulsing alert pins in India, North America and Europe. Drag to rotate; select a region with the tabs below."
+        className="absolute inset-0 m-auto cursor-grab select-none"
+        style={{ touchAction: 'pan-y' }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onPointerLeave={onPointerLeave}
+      />
     </div>
   );
 }
@@ -201,6 +280,7 @@ const STEPS = [
 export default function GlobeIntro({ onClose }: { onClose: () => void }) {
   const [active, setActive] = useState(0);
   const [auto, setAuto] = useState(() => !prefersReducedMotion());
+  const [dragging, setDragging] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const launchRef = useRef<HTMLButtonElement>(null);
@@ -241,11 +321,17 @@ export default function GlobeIntro({ onClose }: { onClose: () => void }) {
     return () => opener?.focus?.();
   }, []);
 
+  // Auto-advance stops for good once the user picks something, and waits while they drag.
   useEffect(() => {
-    if (!auto) return;
+    if (!auto || dragging) return;
     const id = window.setInterval(() => setActive((a) => (a + 1) % SCENARIOS.length), AUTO_MS);
     return () => window.clearInterval(id);
-  }, [auto]);
+  }, [auto, dragging]);
+
+  const select = useCallback((i: number) => {
+    setAuto(false);
+    setActive(i);
+  }, []);
 
   const scenario = SCENARIOS[active];
   const ink = 'text-[#e2e8f0]';
@@ -333,7 +419,7 @@ export default function GlobeIntro({ onClose }: { onClose: () => void }) {
 
         {/* Globe + scenario */}
         <div>
-          <Globe active={active} />
+          <Globe active={active} onSelect={select} onDragChange={setDragging} />
 
           <div role="tablist" aria-label="Leak scenarios" className="mt-2 flex flex-wrap justify-center gap-2">
             {SCENARIOS.map((s, i) => (
@@ -342,10 +428,7 @@ export default function GlobeIntro({ onClose }: { onClose: () => void }) {
                 type="button"
                 role="tab"
                 aria-selected={i === active}
-                onClick={() => {
-                  setAuto(false);
-                  setActive(i);
-                }}
+                onClick={() => select(i)}
                 className={`press rounded-full border px-3 py-1 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[#34d399] ${
                   i === active
                     ? 'border-[#fb7185] bg-[#4c0519]/70 text-[#ffe4e6]'
@@ -367,7 +450,7 @@ export default function GlobeIntro({ onClose }: { onClose: () => void }) {
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               {scenario.outcome}
             </p>
-            {auto && <span aria-hidden className="animate-progress absolute inset-x-0 bottom-0 h-0.5 origin-left bg-[#34d399]/70" />}
+            {auto && !dragging && <span aria-hidden className="animate-progress absolute inset-x-0 bottom-0 h-0.5 origin-left bg-[#34d399]/70" />}
           </div>
           <p className={`mt-2 text-center text-[11px] ${muted}`}>Illustrative scenarios. No real incidents or data are shown.</p>
         </div>
