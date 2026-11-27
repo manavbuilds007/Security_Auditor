@@ -1,5 +1,6 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import Header from './components/Header';
+import UseCaseBanner from './components/UseCaseBanner';
 import InputPanel from './components/InputPanel';
 import ControlsBar from './components/ControlsBar';
 import CategoryFilters from './components/CategoryFilters';
@@ -45,6 +46,7 @@ export default function App() {
     <div className="flex min-h-full flex-col">
       <Header />
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-3 px-4 py-4">
+        <UseCaseBanner />
         <InputPanel
           text={text}
           lineEnding={lineEnding}
