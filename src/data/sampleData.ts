@@ -14,16 +14,16 @@ export const SAMPLE_TEXT = `# Support escalation #48213: DRAFT, contains custome
 2025-11-27 10:45:11 ERROR bad address 999.1.1.1 rejected; fallback 10.0.0.7 and ::1
 2025-11-27 10:46:27 INFO  Refund to 5500-0000-0000-0004 initiated; receipt sent to RAHUL.SHARMA@example.com
 2025-11-27 10:47:00 INFO  Amex 378282246310005 declined. Transaction ref 9876543210123456.
-2025-11-27 10:48:33 INFO  Escalated to priya.nair@corp.in, phone 09876543210, from 192.168.10.45
+2025-11-27 10:48:33 INFO  Escalated to priya.nair@example.org, phone 09876543210, from 192.168.10.45
 Question for the vendor: why does the retry from 192.168.10.45 keep timing out for this customer?
 `;
 
 export const SAMPLE_CSV = `ticket_id,customer,email,phone,card,pan,aadhaar,ip,notes
 48213,Rahul Sharma,rahul.sharma@example.com,+91 98765 43210,4111 1111 1111 1111,ABCPE1234F,2345 6789 0124,192.168.10.45,"Failed payment, retried twice (export for vendor review)"
-48214,Priya Nair,priya.nair@corp.in,09876543210,5500-0000-0000-0004,FGHCJ5678K,4987 6543 2102,10.0.0.7,"Order 1234567812345678 is an internal ID, not a card"
+48214,Priya Nair,priya.nair@example.org,09876543210,5500-0000-0000-0004,FGHCJ5678K,4987 6543 2102,10.0.0.7,"Order 1234567812345678 is an internal ID, not a card"
 48215,Rahul Sharma,RAHUL.SHARMA@example.com,+1 (415) 555-2671,378282246310005,ABCPE1234F,2345 6789 0124,2001:db8::1,Duplicate customer record
 `;
 
 /** Short input for the "How it works" section; its outputs are pinned by a test. */
 export const HOW_IT_WORKS_EXAMPLE =
-  'Reach Jane at jane.doe@acme.com or +91 98765 43210. Card 4111 1111 1111 1111 (again: jane.doe@acme.com).';
+  'Reach Jane at jane.doe@example.com or +91 98765 43210. Card 4111 1111 1111 1111 (again: jane.doe@example.com).';

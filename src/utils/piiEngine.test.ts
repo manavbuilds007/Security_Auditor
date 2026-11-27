@@ -39,7 +39,7 @@ describe('checksums', () => {
 
 describe('detectors', () => {
   it('finds emails', () => {
-    expect(typesOf('mail rahul.sharma+tag@example.co.in now')).toEqual([['EMAIL', 'rahul.sharma+tag@example.co.in']]);
+    expect(typesOf('mail rahul.sharma+tag@example.org now')).toEqual([['EMAIL', 'rahul.sharma+tag@example.org']]);
     expect(typesOf('not an email: user@ or @domain.com')).toEqual([]);
   });
 
@@ -246,7 +246,7 @@ describe('How it works examples (shown in the UI)', () => {
     const run = (mode: 'full' | 'partial' | 'pseudonym') => sanitize(HOW_IT_WORKS_EXAMPLE, { mode }).output;
     expect(run('full')).toBe('Reach Jane at [REDACTED] or [REDACTED]. Card [REDACTED] (again: [REDACTED]).');
     expect(run('partial')).toBe(
-      'Reach Jane at j***@acme.com or +91-XXXXXX3210. Card XXXX-XXXX-XXXX-1111 (again: j***@acme.com).',
+      'Reach Jane at j***@example.com or +91-XXXXXX3210. Card XXXX-XXXX-XXXX-1111 (again: j***@example.com).',
     );
     expect(run('pseudonym')).toBe('Reach Jane at USER_01 or PHONE_01. Card CARD_01 (again: USER_01).');
   });

@@ -1,5 +1,18 @@
 node_modules
 dist
+coverage
 *.local
 .DS_Store
 *.tsbuildinfo
+
+# Secrets and credentials: never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+.npmrc
+
+# Vercel CLI writes project/org IDs here
+.vercel

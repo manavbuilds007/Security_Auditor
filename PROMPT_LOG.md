@@ -199,6 +199,35 @@ Input: a second review found places where the interface said things the app does
 - **Not changed:** the same `#` prefix still lets `ticket#<12 digits>` be read as an Aadhaar number (no checksum
   by default) and card numbers are only protected by Luhn. Left alone because only the phone pattern was in scope.
 
-## 11. Verification
+## 11. Pre-publication security audit
+
+Run before the first push to GitHub. Read-only checks first, then fixes.
+
+- **Secrets:** pattern scan (cloud/GitHub/Slack/OpenAI/Anthropic/Google keys, private keys, JWTs, `key=`/`token=`
+  assignments) over the working tree and every commit in history: nothing. No `.env`, key, cert, `.npmrc` or
+  credential file was ever committed. `dist/` and `node_modules/` are ignored.
+- **Personal data:** no absolute paths, usernames, hostnames or the owner's email in any tracked file or history.
+  All sample emails are synthetic and now use RFC 2606 reserved domains (`example.com` / `example.org`); cards are
+  public test numbers; IPs are private/documentation ranges; PANs and phones are fictional. Residual: the sample
+  Aadhaar numbers are Verhoeff-valid by construction, so a tiny fraction of such numbers could be assigned to a real
+  person; they are sequential patterns, but they cannot be proven unassigned.
+- **Shipped bundle:** no source maps, no local paths or hostnames inside `dist/`.
+- **Code:** no `dangerouslySetInnerHTML`/`innerHTML`/`eval`/`document.write`/`window.open`, no `fetch`/XHR/
+  WebSocket/beacon/cookies/IndexedDB, no `console` output. The only persisted values are `theme` and the intro
+  dismissal flag (`localStorage`); user text is never stored.
+- **Supply chain:** lockfile is entirely `registry.npmjs.org` with integrity hashes; no install lifecycle scripts
+  in `package.json`; 3 runtime dependencies.
+- **Vulnerabilities:** `npm audit` reported 3 advisories (2 critical, 1 moderate), all in the dev-only test runner
+  (Vitest 3.x via `tinypool` and `@vitest/mocker`); production dependencies had 0. Upgraded to Vitest 5.1.2: audit
+  now reports 0 and all tests pass.
+- **Hardening:** `.gitignore` now also covers `.env*`, key/cert files, `.npmrc`, `coverage` and `.vercel/` (which
+  holds Vercel project/org IDs). `vercel.json` adds `Permissions-Policy` (camera, microphone, geolocation, payment,
+  USB, serial, Bluetooth off) and `Cross-Origin-Opener-Policy: same-origin`.
+- **Not changed / open:** (1) commit author is a machine-local identity (`...@<hostname>.local`) that would become
+  public; fixing it needs the owner's choice of email. (2) CSP keeps `style-src 'unsafe-inline'`; React sets inline
+  styles through the CSSOM, which strict CSP allows, so it can probably be removed, but that must be verified in a
+  browser. (3) There is no LICENSE file, so the code is all-rights-reserved by default; that is the owner's choice.
+
+## 12. Verification
 
 Results of `npx vitest run`, `tsc --noEmit` and `npm run build` are recorded in the final hand-off message.

@@ -3,7 +3,7 @@ import { HOW_IT_WORKS_EXAMPLE } from '../data/sampleData';
 import { REJECTED_MARK_DESCRIPTION } from './categoryStyles';
 
 const SUPPORTED: { name: string; formats: string; check: string }[] = [
-  { name: 'Email', formats: 'jane.doe+tag@acme.co.in', check: 'Pattern match, case-insensitive' },
+  { name: 'Email', formats: 'jane.doe+tag@example.org', check: 'Pattern match, case-insensitive' },
   { name: 'Phone', formats: '+91 98765 43210, 09876543210, +1 (415) 555-2671', check: 'Indian mobiles, or +country-code numbers with 8–15 digits' },
   { name: 'Credit card', formats: '4111 1111 1111 1111, 5500-0000-0000-0004', check: '13–19 digits, spaces or dashes; must pass Luhn' },
   { name: 'Aadhaar', formats: '2345 6789 0124', check: '12 digits, not starting 0 or 1; optional Verhoeff checksum' },
