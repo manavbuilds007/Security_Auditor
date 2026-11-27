@@ -15,7 +15,7 @@ export function sanitizedName(fileName: string): string {
 }
 
 const btn =
-  'inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+  'press group inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
 export default function ExportBar({ output, fileName }: Props) {
   const [copied, setCopied] = useState(false);
@@ -65,7 +65,7 @@ export default function ExportBar({ output, fileName }: Props) {
           disabled={empty}
           title="Copy the sanitized text to your clipboard"
         >
-          {copied ? <Check className="h-4 w-4 text-emerald-600" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
+          {copied ? <Check key="ok" className="h-4 w-4 animate-pop text-emerald-600" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
           {copied ? 'Copied!' : 'Copy sanitized text'}
         </button>
         <button
@@ -75,7 +75,7 @@ export default function ExportBar({ output, fileName }: Props) {
           disabled={empty}
           title={`Save as ${name}`}
         >
-          <Download className="h-4 w-4" aria-hidden /> Download {name}
+          <Download className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" aria-hidden /> Download {name}
         </button>
       </div>
     </section>

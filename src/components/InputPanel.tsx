@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { FileText, Table, Trash2, Upload } from 'lucide-react';
+import { FileText, Table, Trash2, Upload, ClipboardPaste } from 'lucide-react';
 import type { LineEnding } from '../utils/csv';
 import EmptyState from './EmptyState';
 
@@ -14,7 +14,7 @@ interface Props {
 }
 
 const btn =
-  'inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50';
+  'press inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50';
 
 export default function InputPanel({ text, lineEnding, fileName, onChange, onFile, onSample, onClear }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -66,12 +66,12 @@ export default function InputPanel({ text, lineEnding, fileName, onChange, onFil
           spellCheck={false}
           aria-label="Text to sanitize"
           placeholder=""
-          className="block h-56 w-full resize-y rounded-b-lg p-3 font-mono text-xs leading-relaxed focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          className="block h-56 w-full resize-y rounded-b-lg bg-white p-3 text-slate-900 font-mono text-xs leading-relaxed focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
         />
         {!text && (
           // The overlay lets clicks fall through to the textarea, except on its buttons.
           <div className="pointer-events-none absolute inset-0 [&_button]:pointer-events-auto">
-            <EmptyState title="Paste text here, drop in a file, or start with a sample" onSample={onSample}>
+            <EmptyState Icon={ClipboardPaste} title="Paste text here, drop in a file, or start with a sample" onSample={onSample}>
               Works on support tickets, logs and CSV exports. Detected emails, phones, cards, Aadhaar, PAN and IP
               addresses are redacted as you type. Everything stays in this browser tab.
             </EmptyState>

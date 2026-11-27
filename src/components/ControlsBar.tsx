@@ -41,12 +41,23 @@ const VERHOEFF_TIP =
   'Aadhaar numbers end in a checksum digit (Verhoeff). When on, 12-digit numbers that fail it are treated as false positives and left unchanged. Off by default, so typos and test numbers are still redacted (the safer choice).';
 
 export default function ControlsBar({ mode, typedTags, aadhaarVerhoeff, onMode, onTypedTags, onAadhaarVerhoeff }: Props) {
-  const current = MODES.find((m) => m.id === mode)!;
+  const index = MODES.findIndex((m) => m.id === mode);
+  const current = MODES[index];
   return (
     <section className="rounded-lg border border-slate-200 bg-white px-3 py-2.5" aria-label="Redaction settings">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         <h2 className="text-sm font-semibold">2. Choose how to redact</h2>
-        <div role="radiogroup" aria-label="Redaction mode" className="inline-flex overflow-hidden rounded-md border border-slate-300">
+        <div
+          role="radiogroup"
+          aria-label="Redaction mode"
+          className="relative inline-grid overflow-hidden rounded-md border border-slate-300 [grid-template-columns:repeat(3,1fr)]"
+        >
+          {/* Sliding highlight behind the active option. */}
+          <span
+            aria-hidden
+            className="absolute inset-y-0 left-0 w-1/3 bg-slate-900 transition-transform duration-300 ease-[cubic-bezier(0.34,1.3,0.64,1)]"
+            style={{ transform: `translateX(${index * 100}%)` }}
+          />
           {MODES.map(({ id, label, tip, Icon }) => (
             <button
               key={id}
@@ -55,8 +66,8 @@ export default function ControlsBar({ mode, typedTags, aadhaarVerhoeff, onMode, 
               aria-checked={mode === id}
               title={tip}
               onClick={() => onMode(id)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500 ${
-                mode === id ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'
+              className={`relative z-10 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500 ${
+                mode === id ? 'text-white' : 'text-slate-700 hover:text-slate-900'
               }`}
             >
               <Icon className="h-3.5 w-3.5" aria-hidden /> {label}
@@ -79,7 +90,7 @@ export default function ControlsBar({ mode, typedTags, aadhaarVerhoeff, onMode, 
           <HelpCircle className="h-3.5 w-3.5" aria-hidden />
         </label>
       </div>
-      <p className="mt-2 text-xs text-slate-600" aria-live="polite">
+      <p key={mode} className="animate-fade-in mt-2 text-xs text-slate-600" aria-live="polite">
         {current.summary}
         {mode === 'full' && typedTags && ' Tags show the type, e.g. [REDACTED_EMAIL].'}
         {aadhaarVerhoeff && ' Aadhaar numbers failing the Verhoeff checksum are left unchanged.'}

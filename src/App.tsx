@@ -1,6 +1,7 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import Header from './components/Header';
-import UseCaseBanner from './components/UseCaseBanner';
+import UseCases from './components/UseCases';
+import Reveal from './components/Reveal';
 import InputPanel from './components/InputPanel';
 import ControlsBar from './components/ControlsBar';
 import CategoryFilters from './components/CategoryFilters';
@@ -38,6 +39,8 @@ export default function App() {
     return { ...info, preserved: sameStructure(deferred, result.output, info.delimiter) };
   }, [isCsv, deferred, result.output]);
 
+  const animKey = `${mode}-${typedTags}-${aadhaarVerhoeff}`;
+
   const loadSample = (kind: 'log' | 'csv') => {
     setText(kind === 'csv' ? SAMPLE_CSV : SAMPLE_TEXT);
     setFileName(kind === 'csv' ? 'sample.csv' : 'sample.txt');
@@ -47,35 +50,49 @@ export default function App() {
     <div className="flex min-h-full flex-col">
       <Header />
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-3 px-4 py-4">
-        <UseCaseBanner />
-        <InputPanel
-          text={text}
-          lineEnding={lineEnding}
-          fileName={fileName}
-          onChange={setText}
-          onFile={(name, content) => {
-            setFileName(name);
-            setText(content);
-          }}
-          onSample={loadSample}
-          onClear={() => {
-            setText('');
-            setFileName('');
-          }}
-        />
-        <ControlsBar
-          mode={mode}
-          typedTags={typedTags}
-          aadhaarVerhoeff={aadhaarVerhoeff}
-          onMode={setMode}
-          onTypedTags={setTypedTags}
-          onAadhaarVerhoeff={setAadhaarVerhoeff}
-        />
-        <CategoryFilters enabled={enabled} counts={result.counts} onToggle={(t) => setEnabled((e) => ({ ...e, [t]: !e[t] }))} />
-        <SummaryBar result={result} redacted={redacted} csv={csv} />
-        <DiffView source={result.sourceSegments} output={result.outputSegments} onSample={loadSample} />
-        <ExportBar output={result.output} fileName={fileName} />
-        <HowItWorks />
+        <UseCases />
+        <Reveal delay={0}>
+          <InputPanel
+            text={text}
+            lineEnding={lineEnding}
+            fileName={fileName}
+            onChange={setText}
+            onFile={(name, content) => {
+              setFileName(name);
+              setText(content);
+            }}
+            onSample={loadSample}
+            onClear={() => {
+              setText('');
+              setFileName('');
+            }}
+          />
+        </Reveal>
+        <Reveal delay={60}>
+          <ControlsBar
+            mode={mode}
+            typedTags={typedTags}
+            aadhaarVerhoeff={aadhaarVerhoeff}
+            onMode={setMode}
+            onTypedTags={setTypedTags}
+            onAadhaarVerhoeff={setAadhaarVerhoeff}
+          />
+        </Reveal>
+        <Reveal delay={100}>
+          <div className="flex flex-col gap-3">
+            <CategoryFilters enabled={enabled} counts={result.counts} onToggle={(t) => setEnabled((e) => ({ ...e, [t]: !e[t] }))} />
+            <SummaryBar result={result} redacted={redacted} csv={csv} />
+          </div>
+        </Reveal>
+        <Reveal>
+          <DiffView source={result.sourceSegments} output={result.outputSegments} onSample={loadSample} animKey={animKey} />
+        </Reveal>
+        <Reveal>
+          <ExportBar output={result.output} fileName={fileName} />
+        </Reveal>
+        <Reveal>
+          <HowItWorks />
+        </Reveal>
       </main>
       <footer className="px-4 py-4 text-center text-xs text-slate-500">
         All processing happens in your browser. No data is uploaded, stored or logged.

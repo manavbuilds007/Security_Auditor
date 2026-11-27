@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { ScanSearch, ShieldCheck } from 'lucide-react';
 import { TYPE_LABELS, type Segment } from '../utils/piiEngine';
 import { CATEGORY_STYLES } from './categoryStyles';
 import EmptyState from './EmptyState';
@@ -7,9 +8,12 @@ interface Props {
   source: Segment[];
   output: Segment[];
   onSample: (kind: 'log' | 'csv') => void;
+  /** Changes whenever the redaction settings change, replaying the highlight animation. */
+  animKey: string;
 }
 
-function Segments({ segments, side }: { segments: Segment[]; side: 'source' | 'output' }) {
+function Segments({ segments, side, animKey }: { segments: Segment[]; side: 'source' | 'output'; animKey: string }) {
+  let n = 0;
   return (
     <>
       {segments.map((s, i) => {
@@ -31,8 +35,14 @@ function Segments({ segments, side }: { segments: Segment[]; side: 'source' | 'o
             ? `${TYPE_LABELS[s.type]} → ${s.applied ? s.replacement : 'left unchanged (filtered off)'}`
             : `${TYPE_LABELS[s.type]} (redacted)`;
         const style = s.applied === false ? 'bg-slate-100 text-slate-500 ring-1 ring-slate-300' : CATEGORY_STYLES[s.type].mark;
+        const delay = Math.min(n++ * 35, 600);
         return (
-          <mark key={i} title={title} className={`rounded-sm px-0.5 ${style}`}>
+          <mark
+            key={`${i}-${side === 'output' ? animKey : ''}`}
+            title={title}
+            style={{ animationDelay: `${delay}ms` }}
+            className={`animate-mark-in rounded-sm px-0.5 ${style}`}
+          >
             {s.text}
           </mark>
         );
@@ -41,7 +51,7 @@ function Segments({ segments, side }: { segments: Segment[]; side: 'source' | 'o
   );
 }
 
-export default function DiffView({ source, output, onSample }: Props) {
+export default function DiffView({ source, output, onSample, animKey }: Props) {
   const left = useRef<HTMLPreElement>(null);
   const right = useRef<HTMLPreElement>(null);
   const syncing = useRef(false);
@@ -65,14 +75,14 @@ export default function DiffView({ source, output, onSample }: Props) {
         </h2>
         {empty ? (
           <div className={emptyPane}>
-            <EmptyState title="Nothing to review yet" onSample={onSample}>
+            <EmptyState Icon={ScanSearch} title="Nothing to review yet" onSample={onSample}>
               Your original text will appear here with every detected item highlighted by type. Hover a highlight to
               see what it becomes.
             </EmptyState>
           </div>
         ) : (
           <pre ref={left} onScroll={sync(left, right)} className={pane} tabIndex={0}>
-            <Segments segments={source} side="source" />
+            <Segments segments={source} side="source" animKey={animKey} />
           </pre>
         )}
       </section>
@@ -82,14 +92,14 @@ export default function DiffView({ source, output, onSample }: Props) {
         </h2>
         {empty ? (
           <div className={emptyPane}>
-            <EmptyState title="Sanitized output appears here">
+            <EmptyState Icon={ShieldCheck} title="Sanitized output appears here">
               Pick a redaction mode above and the result updates live. Amber dashed underlines mark numbers that
               looked like cards or Aadhaar but failed their checksum and were left unchanged.
             </EmptyState>
           </div>
         ) : (
           <pre ref={right} onScroll={sync(right, left)} className={pane} tabIndex={0}>
-            <Segments segments={output} side="output" />
+            <Segments segments={output} side="output" animKey={animKey} />
           </pre>
         )}
       </section>

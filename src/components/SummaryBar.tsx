@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { SanitizeResult } from '../utils/piiEngine';
 import type { CsvInfo } from '../utils/csv';
+import AnimatedNumber from './AnimatedNumber';
 
 interface Props {
   result: SanitizeResult;
@@ -19,19 +20,19 @@ export default function SummaryBar({ result, redacted, csv }: Props) {
       aria-live="polite"
     >
       <span>
-        <strong className="tabular-nums">{detected}</strong> detected
+        <strong><AnimatedNumber value={detected} /></strong> detected
       </span>
       <span>
-        <strong className="tabular-nums">{redacted}</strong> redacted
+        <strong><AnimatedNumber value={redacted} /></strong> redacted
       </span>
       <span
         className={`inline-flex items-center gap-1 ${rejected ? 'text-amber-700' : ''}`}
         title="Digit strings that looked like cards/Aadhaar but failed the checksum, so were left unchanged"
       >
         <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
-        Rejected false positives: <strong className="tabular-nums">{rejected}</strong>
+        Rejected false positives: <strong><AnimatedNumber value={rejected} /></strong>
         <span className="text-slate-500">
-          (non-Luhn {rejectedCounts.luhn} · Verhoeff {rejectedCounts.verhoeff})
+          (non-Luhn <AnimatedNumber value={rejectedCounts.luhn} /> · Verhoeff <AnimatedNumber value={rejectedCounts.verhoeff} />)
         </span>
       </span>
       {csv && (
