@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowRight, CheckCircle2, FileWarning, Rocket, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ArrowRight, Rocket, ShieldCheck } from 'lucide-react';
 import { prefersReducedMotion } from '../hooks/motion';
 import { SCENARIOS } from '../data/globeScenarios';
+import { useDialogKeys } from '../hooks/useDialogKeys';
+import FlowSteps from './FlowSteps';
 import InteractiveGlobe from './InteractiveGlobe';
+import { ScenarioCard, ScenarioTabs } from './ScenarioPanel';
 
 const INTRO_STORAGE_KEY = 'pii-intro-dismissed';
 
@@ -24,11 +27,6 @@ export function markIntroSeen(): void {
 }
 
 const AUTO_MS = 5600;
-const STEPS = [
-  { Icon: FileWarning, title: 'Raw Document', sample: '4111 1111 1111 1111', tone: 'text-[#fda4af]' },
-  { Icon: ShieldCheck, title: 'In-Browser Scrubbing', sample: 'Luhn ✓ → masked', tone: 'text-[#6ee7b7]' },
-  { Icon: CheckCircle2, title: 'Safe to Share', sample: 'XXXX-XXXX-XXXX-1111', tone: 'text-[#7dd3fc]' },
-];
 
 export default function GlobeIntro({ onClose }: { onClose: () => void }) {
   const [active, setActive] = useState(0);
@@ -43,29 +41,7 @@ export default function GlobeIntro({ onClose }: { onClose: () => void }) {
     window.setTimeout(onClose, prefersReducedMotion() ? 0 : 450);
   }, [onClose]);
 
-  // Esc closes; Tab stays inside the dialog.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        close();
-      } else if (e.key === 'Tab' && dialogRef.current) {
-        const items = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled])'));
-        if (!items.length) return;
-        const first = items[0];
-        const lastEl = items[items.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          lastEl.focus();
-        } else if (!e.shiftKey && document.activeElement === lastEl) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [close]);
+  useDialogKeys(dialogRef, close);
 
   // Focus the primary action, and hand focus back to whatever opened the intro when it closes.
   useEffect(() => {
@@ -152,88 +128,18 @@ export default function GlobeIntro({ onClose }: { onClose: () => void }) {
             <span className={`text-xs ${muted}`}>No sign-up. No uploads. Nothing stored.</span>
           </div>
 
-          <ol
-            className="mt-8 grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-stretch"
-            aria-label="How it works"
-          >
-            {STEPS.flatMap(({ Icon, title, sample, tone }, i) => {
-              const card = (
-                <li
-                  key={title}
-                  style={{ animationDelay: `${i * 1500}ms` }}
-                  className="animate-step-glow rounded-xl border border-white/10 bg-[#0b1426]/80 p-3"
-                >
-                  <Icon className={`h-5 w-5 ${tone}`} aria-hidden />
-                  <p className="mt-2 text-sm font-semibold text-[#f1f5f9]">{title}</p>
-                  <p className={`mt-1 font-mono text-[11px] ${tone}`}>{sample}</p>
-                </li>
-              );
-              return i < STEPS.length - 1
-                ? [
-                    card,
-                    <li key={`arrow-${i}`} aria-hidden className="hidden items-center text-[#475569] sm:flex">
-                      <ArrowRight className="h-4 w-4" />
-                    </li>,
-                  ]
-                : [card];
-            })}
-          </ol>
+          <FlowSteps />
         </div>
 
         {/* Globe + region tabs */}
         <div className="order-1 lg:order-none lg:col-start-2 lg:row-start-1 lg:self-end">
           <InteractiveGlobe active={active} onSelect={select} onDragChange={setDragging} />
 
-          <div role="tablist" aria-label="Leak scenarios" className="mt-2 flex flex-wrap justify-center gap-2">
-            {SCENARIOS.map((s, i) => (
-              <button
-                key={s.id}
-                type="button"
-                role="tab"
-                aria-selected={i === active}
-                onClick={() => select(i)}
-                className={`press rounded-full border px-3 py-1 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[#34d399] ${
-                  i === active
-                    ? 'border-[#fb7185] bg-[#4c0519]/70 text-[#ffe4e6]'
-                    : 'border-[#334155] text-[#94a3b8] hover:border-[#64748b]'
-                }`}
-              >
-                {s.region}
-              </button>
-            ))}
-          </div>
+          <ScenarioTabs active={active} onSelect={select} />
         </div>
 
         {/* Scenario card */}
-        <div className="order-3 lg:order-none lg:col-start-2 lg:row-start-2 lg:self-start">
-          <div
-            key={active}
-            role="tabpanel"
-            className="animate-fade-up relative mt-3 overflow-hidden rounded-xl border border-white/10 bg-[#0b1426]/85 p-4 backdrop-blur"
-          >
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#fda4af]">
-              <TriangleAlert className="h-3.5 w-3.5 animate-pulse" aria-hidden />
-              Leak risk · {scenario.cities.map((c) => c.city).join(' / ')}
-            </p>
-            <p className="mt-1.5 text-sm leading-relaxed text-[#e2e8f0]">{scenario.leak}</p>
-            <p
-              className="animate-fade-up mt-3 flex items-start gap-2 text-sm font-semibold text-[#6ee7b7]"
-              style={{ animationDelay: '1100ms' }}
-            >
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-              {scenario.outcome}
-            </p>
-            {auto && !dragging && (
-              <span
-                aria-hidden
-                className="animate-progress absolute inset-x-0 bottom-0 h-0.5 origin-left bg-[#34d399]/70"
-              />
-            )}
-          </div>
-          <p className={`mt-2 text-center text-[11px] ${muted}`}>
-            Illustrative scenarios. No real incidents or data are shown.
-          </p>
-        </div>
+        <ScenarioCard key={scenario.id} scenario={scenario} progress={auto && !dragging} />
       </div>
     </div>
   );

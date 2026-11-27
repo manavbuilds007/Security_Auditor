@@ -227,28 +227,25 @@ export function partialMask(m: Match): string {
   }
 }
 
-export function sanitize(text: string, options: SanitizeOptions): SanitizeResult {
-  const { matches, rejections } = detect(text, options);
-  const counts = Object.fromEntries(PII_TYPES.map((t) => [t, 0])) as Record<PiiType, number>;
-  const rejectedCounts: Record<RejectionReason, number> = { luhn: 0, verhoeff: 0 };
-  for (const m of matches) counts[m.type]++;
-  for (const r of rejections) rejectedCounts[r.reason]++;
-
-  // Fresh per run: identical normalized values always map to the same token.
-  const pseudonyms = new Map<string, Map<string, string>>();
-  const pseudonymFor = (m: Match): string => {
+/** Pseudonym tokens are numbered per run: identical normalized values always map to the same token. */
+function createPseudonymizer(): (m: Match) => string {
+  const tokensByPrefix = new Map<string, Map<string, string>>();
+  return (m) => {
     const prefix = PSEUDONYM_PREFIX[m.type];
-    let map = pseudonyms.get(prefix);
-    if (!map) pseudonyms.set(prefix, (map = new Map()));
-    let token = map.get(m.normalized);
+    let tokens = tokensByPrefix.get(prefix);
+    if (!tokens) tokensByPrefix.set(prefix, (tokens = new Map()));
+    let token = tokens.get(m.normalized);
     if (!token) {
-      token = `${prefix}_${String(map.size + 1).padStart(2, '0')}`;
-      map.set(m.normalized, token);
+      token = `${prefix}_${String(tokens.size + 1).padStart(2, '0')}`;
+      tokens.set(m.normalized, token);
     }
     return token;
   };
+}
 
-  const replacementFor = (m: Match): string => {
+function createReplacer(options: SanitizeOptions): (m: Match) => string {
+  const pseudonymFor = createPseudonymizer();
+  return (m) => {
     switch (options.mode) {
       case 'full':
         return options.typedTags ? `[REDACTED_${m.type}]` : '[REDACTED]';
@@ -258,8 +255,13 @@ export function sanitize(text: string, options: SanitizeOptions): SanitizeResult
         return pseudonymFor(m);
     }
   };
+}
 
-  type Span = { start: number; end: number; match?: Match; rejection?: Rejection };
+type Span = { start: number; end: number; match?: Match; rejection?: Rejection };
+
+/** Builds the parallel source/output segment lists that the diff view renders. */
+function buildSegments(text: string, matches: Match[], rejections: Rejection[], options: SanitizeOptions) {
+  const replacementFor = createReplacer(options);
   const spans: Span[] = [
     ...matches.map((match) => ({ start: match.start, end: match.end, match })),
     ...rejections.map((rejection) => ({ start: rejection.start, end: rejection.end, rejection })),
@@ -267,13 +269,13 @@ export function sanitize(text: string, options: SanitizeOptions): SanitizeResult
 
   const sourceSegments: Segment[] = [];
   const outputSegments: Segment[] = [];
-  let cursor = 0;
   const pushText = (s: string) => {
     if (!s) return;
     sourceSegments.push({ kind: 'text', text: s });
     outputSegments.push({ kind: 'text', text: s });
   };
 
+  let cursor = 0;
   for (const span of spans) {
     pushText(text.slice(cursor, span.start));
     const original = text.slice(span.start, span.end);
@@ -301,7 +303,17 @@ export function sanitize(text: string, options: SanitizeOptions): SanitizeResult
     cursor = span.end;
   }
   pushText(text.slice(cursor));
+  return { sourceSegments, outputSegments };
+}
 
+export function sanitize(text: string, options: SanitizeOptions): SanitizeResult {
+  const { matches, rejections } = detect(text, options);
+  const counts = Object.fromEntries(PII_TYPES.map((t) => [t, 0])) as Record<PiiType, number>;
+  const rejectedCounts: Record<RejectionReason, number> = { luhn: 0, verhoeff: 0 };
+  for (const m of matches) counts[m.type]++;
+  for (const r of rejections) rejectedCounts[r.reason]++;
+
+  const { sourceSegments, outputSegments } = buildSegments(text, matches, rejections, options);
   return {
     output: outputSegments.map((s) => s.text).join(''),
     matches,
