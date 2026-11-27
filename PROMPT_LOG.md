@@ -155,6 +155,35 @@ bigger next step (it would replace the Input and Source panes).
 - **Verification:** unit tests, type-check and build only. I had no browser tool in this session, so none of the
   visual or phone-layout changes have been seen on screen.
 
-## 9. Verification
+## 9. Copy accuracy and rendering fixes
+
+Input: a second review found places where the interface said things the app does not do, plus rendering bugs.
+
+- **Copy vs behaviour:** "drop in a file" had no handler, so drag-and-drop was built (window-level listeners that
+  always cancel the browser's navigate-to-file default, load only while the workspace is active, accept `.txt` /
+  `.csv` or text MIME types and show an alert for anything else). The globe outcome "Blocked locally before
+  upload." claimed the app blocks uploads; it now says "Scrubbed in your browser before you paste it anywhere."
+  "Dashed amber underline" was stale: the description and the rejected-mark class now live together
+  (`REJECTED_MARK_*`) and a test fails if they diverge. A second test forbids block/prevent/intercept/stop wording
+  in scenario copy.
+- **Invisible section:** `Reveal` used an IntersectionObserver, which never fires for a block you jump past
+  (End key, scrollbar drag), leaving it at opacity 0. It now checks on scroll/resize and reveals anything at or
+  above the viewport (`shouldReveal`, tested).
+- **Squashed icon:** the empty-state guide was absolutely positioned inside a fixed 240px box, so taller content
+  squeezed the icon (32×10px). When empty, the guide is in normal flow, the box grows to fit, the textarea fills
+  it behind, and icon/buttons are `shrink-0`.
+- **Result in view:** step 2 was ~530px tall and pushed the result below the fold. The three switches are folded
+  into "Advanced options" (with a "changed" badge when non-default), the layout is `max-w-7xl`, and at ≥1280px step
+  2 is a sticky right column (`21rem`, scrolls internally if the viewport is short).
+- **Pane drift:** the labels and redactions change line wrapping, so two independently scrolled panes could not stay
+  aligned. The panes are now one grid of source|sanitized line pairs (`pairLines`, tested) in a single scroll
+  container; no scroll syncing. Capped at 3,000 rendered lines to keep typing responsive.
+- **Source pane colour-only:** type labels now show in both panes (one switch).
+- **Empty state / phone summary:** the rejected-count line is hidden until there is text; summary notes stack in a
+  single column below `sm`, each as one sentence.
+- **Verification:** unit tests, type-check and build; no browser was available, so layout fixes were reasoned
+  from the DOM/CSS rather than measured.
+
+## 10. Verification
 
 Results of `npx vitest run`, `tsc --noEmit` and `npm run build` are recorded in the final hand-off message.

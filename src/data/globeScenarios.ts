@@ -28,7 +28,7 @@ export const SCENARIOS: Scenario[] = [
       { city: 'Mumbai', lat: 19.08, lon: 72.88, label: 'nw' },
     ],
     leak: 'Unmasked KYC logs and PAN / national ID spreadsheets pasted into external AI tools.',
-    outcome: 'Blocked locally before upload.',
+    outcome: 'Scrubbed in your browser before you paste it anywhere.',
   },
   {
     id: 'north-america',

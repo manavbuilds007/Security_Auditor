@@ -67,9 +67,13 @@ export default function App() {
     <>
       <div ref={shellRef} className="flex min-h-full flex-col">
         <Header onReplayIntro={() => setIntroOpen(true)} />
-        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-5 px-4 py-6">
-          {/* The working surface: visible immediately, no scroll-reveal. */}
+        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-6">
+          {/* The working surface: visible immediately, no scroll-reveal. On wide screens the settings sit in a
+              sticky right column, so the input and the live result are always on screen together. */}
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_21rem] xl:gap-x-6">
+          <div className="xl:col-start-1 xl:row-start-1">
           <InputPanel
+            acceptDrops={!introOpen}
             text={text}
             lineEnding={lineEnding}
             fileName={fileName}
@@ -84,6 +88,8 @@ export default function App() {
               setFileName('');
             }}
           />
+          </div>
+          <div className="xl:sticky xl:top-4 xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:max-h-[calc(100vh-2rem)] xl:self-start xl:overflow-y-auto">
           <ControlsBar
             mode={mode}
             typedTags={typedTags}
@@ -97,7 +103,8 @@ export default function App() {
             onTypeLabels={setTypeLabels}
             onToggleType={(t) => setEnabled((e) => ({ ...e, [t]: !e[t] }))}
           />
-          <section className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm" aria-label="Review and export">
+          </div>
+          <section className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm xl:col-start-1 xl:row-start-2" aria-label="Review and export">
             <StepHeading n={3} title="Review what was found" hint="Highlights show what changes" />
             <div className="mt-4">
               <SummaryBar result={result} redacted={redacted} hasText={text.length > 0} csv={csv} />
@@ -115,6 +122,7 @@ export default function App() {
               <ExportBar output={result.output} fileName={fileName} />
             </div>
           </section>
+          </div>
 
           {/* Supporting content lives below the tool, so returning users reach the input immediately. */}
           <div className="mt-6 flex flex-col gap-12 border-t border-slate-200 pt-10">

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CATEGORY_STYLES } from './categoryStyles';
+import { CATEGORY_STYLES, REJECTED_MARK_CLASS, REJECTED_MARK_DESCRIPTION } from './categoryStyles';
+import { SCENARIOS } from '../data/globeScenarios';
 import { PII_TYPES } from '../utils/piiEngine';
 
 describe('category styles', () => {
@@ -23,5 +24,19 @@ describe('category styles', () => {
 
   it('has a distinct short text label per type, so colour is not the only cue', () => {
     expect(new Set(styles.map((s) => s.tag)).size).toBe(PII_TYPES.length);
+  });
+});
+
+describe('copy that must match behaviour', () => {
+  it('describes rejected numbers the way they are actually drawn', () => {
+    // If the styling changes, this fails until the help text (HowItWorks, empty state) is updated with it.
+    expect(REJECTED_MARK_DESCRIPTION).toBe('dotted grey underline');
+    expect(REJECTED_MARK_CLASS).toContain('decoration-dotted');
+    expect(REJECTED_MARK_CLASS).toMatch(/slate/);
+    expect(REJECTED_MARK_CLASS).not.toMatch(/amber|dashed/);
+  });
+
+  it('never claims the app blocks, intercepts or prevents anything: it cleans text the user then shares', () => {
+    for (const s of SCENARIOS) expect(`${s.leak} ${s.outcome}`, s.id).not.toMatch(/\b(block(ed|s|ing)?|prevent(ed|s)?|intercept(ed|s)?|stop(ped|s)?)\b/i);
   });
 });

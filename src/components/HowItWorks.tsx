@@ -1,5 +1,6 @@
 import { sanitize, type RedactionMode } from '../utils/piiEngine';
 import { HOW_IT_WORKS_EXAMPLE } from '../data/sampleData';
+import { REJECTED_MARK_DESCRIPTION } from './categoryStyles';
 
 const SUPPORTED: { name: string; formats: string; check: string }[] = [
   { name: 'Email', formats: 'jane.doe+tag@acme.co.in', check: 'Pattern match, case-insensitive' },
@@ -70,7 +71,7 @@ export default function HowItWorks() {
           <p className="mt-1 text-[13px] leading-relaxed text-slate-700">
             Long digit strings such as order IDs look like card numbers. Real cards end in a check digit (the{' '}
             <strong>Luhn</strong> check), and about 9 in 10 random 16-digit numbers fail it. Those are left
-            untouched, underlined with a dashed amber line, and counted under{' '}
+            untouched, marked with a {REJECTED_MARK_DESCRIPTION}, and counted under{' '}
             <em>Rejected false positives</em>. A rare ID that happens to pass Luhn is still redacted, which errs on
             the safe side. If the same digits could be several things, the more specific type wins: card, then
             Aadhaar, PAN, email, IPv6, IPv4, and finally phone.
