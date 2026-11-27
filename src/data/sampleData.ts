@@ -23,3 +23,7 @@ export const SAMPLE_CSV = `ticket_id,customer,email,phone,card,pan,aadhaar,ip,no
 48214,Priya Nair,priya.nair@corp.in,09876543210,5500-0000-0000-0004,FGHIJ5678K,4987 6543 2102,10.0.0.7,"Order 1234567812345678 is an internal ID, not a card"
 48215,Rahul Sharma,RAHUL.SHARMA@example.com,+1 (415) 555-2671,378282246310005,ABCDE1234F,2345 6789 0124,2001:db8::1,Duplicate customer record
 `;
+
+/** Short input for the "How it works" section; its outputs are pinned by a test. */
+export const HOW_IT_WORKS_EXAMPLE =
+  'Reach Jane at jane.doe@acme.com or +91 98765 43210. Card 4111 1111 1111 1111 (again: jane.doe@acme.com).';

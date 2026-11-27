@@ -11,7 +11,7 @@ import {
   type SanitizeOptions,
 } from './piiEngine';
 import { describeCsv, detectDelimiter, sameStructure } from './csv';
-import { SAMPLE_CSV, SAMPLE_TEXT } from '../data/sampleData';
+import { HOW_IT_WORKS_EXAMPLE, SAMPLE_CSV, SAMPLE_TEXT } from '../data/sampleData';
 
 const full: SanitizeOptions = { mode: 'full' };
 const typesOf = (text: string, opts: Partial<SanitizeOptions> = {}) =>
@@ -221,5 +221,16 @@ describe('CSV structure preservation', () => {
   it('keeps quoted cells quoted', () => {
     const csv = 'id,note\n1,"call 9876543210, then email a@b.com"\n';
     expect(sanitize(csv, full).output).toBe('id,note\n1,"call [REDACTED], then email [REDACTED]"\n');
+  });
+});
+
+describe('How it works examples (shown in the UI)', () => {
+  it('match what the engine actually produces', () => {
+    const run = (mode: 'full' | 'partial' | 'pseudonym') => sanitize(HOW_IT_WORKS_EXAMPLE, { mode }).output;
+    expect(run('full')).toBe('Reach Jane at [REDACTED] or [REDACTED]. Card [REDACTED] (again: [REDACTED]).');
+    expect(run('partial')).toBe(
+      'Reach Jane at j***@acme.com or +91-XXXXXX3210. Card XXXX-XXXX-XXXX-1111 (again: j***@acme.com).',
+    );
+    expect(run('pseudonym')).toBe('Reach Jane at USER_01 or PHONE_01. Card CARD_01 (again: USER_01).');
   });
 });

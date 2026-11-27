@@ -7,6 +7,7 @@ import CategoryFilters from './components/CategoryFilters';
 import SummaryBar from './components/SummaryBar';
 import DiffView from './components/DiffView';
 import ExportBar from './components/ExportBar';
+import HowItWorks from './components/HowItWorks';
 import { PII_TYPES, sanitize, type PiiType, type RedactionMode } from './utils/piiEngine';
 import { describeCsv, detectLineEnding, sameStructure } from './utils/csv';
 import { SAMPLE_CSV, SAMPLE_TEXT } from './data/sampleData';
@@ -72,8 +73,9 @@ export default function App() {
         />
         <CategoryFilters enabled={enabled} counts={result.counts} onToggle={(t) => setEnabled((e) => ({ ...e, [t]: !e[t] }))} />
         <SummaryBar result={result} redacted={redacted} csv={csv} />
-        <DiffView source={result.sourceSegments} output={result.outputSegments} />
+        <DiffView source={result.sourceSegments} output={result.outputSegments} onSample={loadSample} />
         <ExportBar output={result.output} fileName={fileName} />
+        <HowItWorks />
       </main>
       <footer className="px-4 py-4 text-center text-xs text-slate-500">
         All processing happens in your browser. No data is uploaded, stored or logged.

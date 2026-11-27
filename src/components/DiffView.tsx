@@ -1,11 +1,12 @@
 import { useRef } from 'react';
 import { TYPE_LABELS, type Segment } from '../utils/piiEngine';
 import { CATEGORY_STYLES } from './categoryStyles';
+import EmptyState from './EmptyState';
 
 interface Props {
   source: Segment[];
   output: Segment[];
-  side: 'source' | 'output';
+  onSample: (kind: 'log' | 'csv') => void;
 }
 
 function Segments({ segments, side }: { segments: Segment[]; side: 'source' | 'output' }) {
@@ -40,10 +41,11 @@ function Segments({ segments, side }: { segments: Segment[]; side: 'source' | 'o
   );
 }
 
-export default function DiffView({ source, output }: Pick<Props, 'source' | 'output'>) {
+export default function DiffView({ source, output, onSample }: Props) {
   const left = useRef<HTMLPreElement>(null);
   const right = useRef<HTMLPreElement>(null);
   const syncing = useRef(false);
+  const empty = source.length === 0;
 
   const sync = (from: React.RefObject<HTMLPreElement | null>, to: React.RefObject<HTMLPreElement | null>) => () => {
     if (syncing.current || !from.current || !to.current) return;
@@ -54,19 +56,42 @@ export default function DiffView({ source, output }: Pick<Props, 'source' | 'out
   };
 
   const pane = 'h-96 overflow-auto whitespace-pre-wrap break-words p-3 font-mono text-xs leading-relaxed';
+  const emptyPane = 'h-96';
   return (
     <div className="grid gap-3 lg:grid-cols-2">
       <section className="min-w-0 rounded-lg border border-slate-200 bg-white" aria-label="Source">
-        <h2 className="border-b border-slate-200 px-3 py-2 text-sm font-semibold">Source</h2>
-        <pre ref={left} onScroll={sync(left, right)} className={pane} tabIndex={0}>
-          <Segments segments={source} side="source" />
-        </pre>
+        <h2 className="border-b border-slate-200 px-3 py-2 text-sm font-semibold">
+          Source <span className="font-normal text-slate-500">· detected PII highlighted</span>
+        </h2>
+        {empty ? (
+          <div className={emptyPane}>
+            <EmptyState title="Nothing to review yet" onSample={onSample}>
+              Your original text will appear here with every detected item highlighted by type. Hover a highlight to
+              see what it becomes.
+            </EmptyState>
+          </div>
+        ) : (
+          <pre ref={left} onScroll={sync(left, right)} className={pane} tabIndex={0}>
+            <Segments segments={source} side="source" />
+          </pre>
+        )}
       </section>
       <section className="min-w-0 rounded-lg border border-slate-200 bg-white" aria-label="Sanitized">
-        <h2 className="border-b border-slate-200 px-3 py-2 text-sm font-semibold">Sanitized</h2>
-        <pre ref={right} onScroll={sync(right, left)} className={pane} tabIndex={0}>
-          <Segments segments={output} side="output" />
-        </pre>
+        <h2 className="border-b border-slate-200 px-3 py-2 text-sm font-semibold">
+          Sanitized <span className="font-normal text-slate-500">· safe to copy or download</span>
+        </h2>
+        {empty ? (
+          <div className={emptyPane}>
+            <EmptyState title="Sanitized output appears here">
+              Pick a redaction mode above and the result updates live. Amber dashed underlines mark numbers that
+              looked like cards or Aadhaar but failed their checksum and were left unchanged.
+            </EmptyState>
+          </div>
+        ) : (
+          <pre ref={right} onScroll={sync(right, left)} className={pane} tabIndex={0}>
+            <Segments segments={output} side="output" />
+          </pre>
+        )}
       </section>
     </div>
   );
