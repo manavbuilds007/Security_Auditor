@@ -1,0 +1,56 @@
+# PII Sanitizer
+
+A 100% client-side tool that finds and redacts personally identifiable information in text and CSV files.
+Everything runs in your browser; there is no backend, no analytics and no network calls (the page ships a
+CSP with `connect-src 'none'`).
+
+Stack: Vite · React · TypeScript · Tailwind CSS · lucide-react · Vitest.
+
+## Features
+
+- **Input:** paste text, or upload `.txt` / `.csv` (read with `FileReader`; delimiters, rows and line endings are preserved). One-click sample log and sample CSV.
+- **Detection:** emails, Indian/international phones, IPv4 (octets 0–255), IPv6, Indian PAN, Aadhaar (12 digits, not starting with 0/1, optional Verhoeff checksum), and 13–19 digit credit cards validated with Luhn.
+- **Overlaps:** resolved by precedence `CARD > AADHAAR > PAN > EMAIL > IPV6 > IPV4 > PHONE`, then length.
+- **Rejected false positives:** card-shaped numbers that fail Luhn (and, if enabled, Aadhaar that fail Verhoeff) are left untouched and counted.
+- **Modes (live toggle):**
+  - Full mask: `[REDACTED]` or typed `[REDACTED_EMAIL]`
+  - Partial mask: `j***@domain.com`, `XXXX-XXXX-XXXX-1234`, `XXXXX1234X`, `+91-XXXXXX3210`, `192.168.XXX.XXX`
+  - Consistent pseudonyms: `USER_01`, `CARD_01`, `PAN_01`, `AADHAAR_01`, `PHONE_01`, `IP_01` (same normalized value → same token, per run)
+- **Review:** side-by-side source/sanitized view with colored highlights and tooltips, category on/off filters with counts, audit summary bar.
+- **Export:** copy to clipboard or download `<name>_sanitized.<ext>`.
+
+## CSV handling
+
+No detection pattern can span a delimiter, quote or line break, and no replacement token contains one, so
+structure is preserved by construction. For `.csv` files the summary bar verifies this on every run by
+comparing the delimiter/quote/newline skeleton of input and output.
+
+Note: browsers normalize line breaks inside `<textarea>`; the app restores the uploaded file's original line
+ending (e.g. CRLF) when you edit.
+
+## Develop
+
+```bash
+npm install
+npm run dev          # http://localhost:5173
+npx vitest run       # unit tests
+npx tsc --noEmit -p tsconfig.app.json
+npm run build        # outputs dist/
+```
+
+## Deploy
+
+**GitHub**
+
+```bash
+git remote add origin https://github.com/<you>/<repo>.git
+git push -u origin main
+```
+
+**Vercel:** import the repo at <https://vercel.com/new>. The framework is auto-detected as Vite; `vercel.json`
+sets the build output and security headers (CSP, `nosniff`, `no-referrer`).
+
+## Limits
+
+Pattern-based detection is not exhaustive: it does not find names, addresses, or free-form identifiers, and
+phone/number heuristics can produce false positives or negatives. Review the output before sharing it.
