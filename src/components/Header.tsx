@@ -1,7 +1,7 @@
-import { Lock, Moon, ShieldCheck, Sun } from 'lucide-react';
+import { Globe2, Lock, Moon, ShieldCheck, Sun } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 
-export default function Header() {
+export default function Header({ onReplayIntro }: { onReplayIntro: () => void }) {
   const { dark, toggle } = useTheme();
   const icon = 'absolute inset-0 m-auto h-4 w-4 transition-all duration-500';
   return (
@@ -20,6 +20,14 @@ export default function Header() {
             <Lock className="h-3.5 w-3.5" aria-hidden />
             100% Client-Side • Zero Server Transmission
           </span>
+          <button
+            type="button"
+            onClick={onReplayIntro}
+            title="Replay the intro animation"
+            className="press inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          >
+            <Globe2 className="h-3.5 w-3.5" aria-hidden /> Replay Intro
+          </button>
           <button
             type="button"
             onClick={toggle}

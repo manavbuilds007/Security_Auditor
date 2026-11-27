@@ -72,6 +72,32 @@ Request: add dark mode and make the site much more animated, with its use cases.
 - **Accessibility:** `prefers-reduced-motion` collapses all animation/transition durations and stops the demo
   auto-play. No animation library or network request was added.
 
-## 6. Verification
+## 6. Globe entry intro
+
+Request: a dismissible, strictly client-side revolving-globe entry experience with regional leak scenarios,
+a value-proposition overlay, Skip/Esc, session persistence and a header "Replay Intro".
+
+- **Rendering:** `src/utils/globe.ts` holds the pure maths (orthographic projection, shortest-angle easing,
+  point-in-polygon, land-dot sampling) so it is unit-tested in Node (`globe.test.ts`). `GlobeIntro.tsx` draws
+  it on a 2D canvas: atmosphere glow, shaded sphere, graticule that breaks behind the limb, ~1k land dots
+  that fade toward the edge, and pulsing pins. No WebGL, three.js, tiles or fetched data; bundle grew ~5 kB gzip.
+- **Land data:** ten coarse continent polygons written by hand (recognisable as dots, not cartography).
+  A test asserts known land/ocean points and that all six hotspot cities fall on land.
+- **Scenarios:** India (Bengaluru/Mumbai), North America (San Francisco/New York), Europe (Frankfurt/London),
+  each with the leak and the outcome from the brief. The camera eases to each region (taking the short way
+  round) with a slow sway so it always feels like it is revolving. They are labelled illustrative, not incidents.
+- **Dismissal/persistence:** Skip, Launch and Esc all close it; `sessionStorage` (try/catch) remembers it for
+  the session; Replay Intro reopens it and focus returns to the opener.
+- **Accessibility:** `role="dialog"` + `aria-modal`, focus moved to the primary button and trapped, the
+  workspace is `inert` while open, scenarios are real tabs (clicking one stops auto-advance), and under
+  `prefers-reduced-motion` the globe is a static frame that redraws only on change.
+- **Privacy check:** source scan found no network APIs or URLs. The production bundle had exactly one
+  `fetch(`, from Vite's modulepreload polyfill (same-origin only, and no modulepreload links exist), so it was
+  disabled (`build.modulePreload.polyfill = false`); the bundle now has none. CSP `connect-src 'none'` is unchanged.
+  This is a static check; I did not capture a DevTools Network panel.
+- The intro uses fixed hex colours rather than theme tokens so it looks the same in light and dark mode
+  (dark mode remaps Tailwind's named colours).
+
+## 7. Verification
 
 Results of `npx vitest run`, `tsc --noEmit` and `npm run build` are recorded in the final hand-off message.
