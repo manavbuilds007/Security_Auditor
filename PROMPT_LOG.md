@@ -184,6 +184,21 @@ Input: a second review found places where the interface said things the app does
 - **Verification:** unit tests, type-check and build; no browser was available, so layout fixes were reasoned
   from the DOM/CSS rather than measured.
 
-## 10. Verification
+## 10. Regex edge cases
+
+- **`ticket#9876543210`:** the Indian-mobile pattern's lookbehind now also excludes `#` (it already excluded word
+  characters, `@`, `.` and `+`), so an identifier is not read as a phone number. `ticket 9876543210` and
+  `ticket: 9876543210` are still detected. I did not add `-` to the lookbehind as the example suggested: that
+  would also stop `ref-9876543210` but would change how numbers after a hyphen are handled elsewhere, which was
+  not requested.
+- **PAN:** the pattern is now `[A-Z]{3}[ABCFGHLJPT][A-Z]\d{4}[A-Z]`; the 4th letter is the holder type (P, C, H,
+  F, A, T, B, L, J, G), so `ERROR1234X` no longer matches. Consequence: the old fixture `ABCDE1234F` (4th letter
+  `D`) is not a valid PAN shape, so tests, sample data and help text now use `ABCPE1234F` / `FGHCJ5678K`.
+- **Tests:** two regression tests (ticket-ID vs phone; every valid holder type accepted, a set of invalid ones
+  rejected, `ERROR1234X` untouched). I confirmed both fail against the previous patterns and pass with the fix.
+- **Not changed:** the same `#` prefix still lets `ticket#<12 digits>` be read as an Aadhaar number (no checksum
+  by default) and card numbers are only protected by Luhn. Left alone because only the phone pattern was in scope.
+
+## 11. Verification
 
 Results of `npx vitest run`, `tsc --noEmit` and `npm run build` are recorded in the final hand-off message.

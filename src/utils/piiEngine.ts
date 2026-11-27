@@ -152,10 +152,13 @@ const RE_EMAIL =
   /(?<![\w.%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}(?![\w-])/g;
 const RE_CARD = /(?<![\w@.])(?<!\d[ -])\d(?:[ -]?\d){12,18}(?![\w@])(?![ -]\d)(?!\.\d)/g;
 const RE_AADHAAR = /(?<![\w@.])(?<!\d[ -])[2-9]\d{3}([ -]?)\d{4}\1\d{4}(?![\w@])(?![ -]\d)(?!\.\d)/g;
-const RE_PAN = /(?<![\w@.])[A-Z]{5}\d{4}[A-Z](?![\w@])/g;
+// 4th letter is the holder type: P person, C company, H HUF, F firm, A AOP, T trust, B BOI, L local authority, J juridical, G government.
+// This rejects uppercase words that merely look like a PAN, e.g. ERROR1234X.
+const RE_PAN = /(?<![\w@.])[A-Z]{3}[ABCFGHLJPT][A-Z]\d{4}[A-Z](?![\w@])/g;
 const RE_IPV4 = new RegExp(`(?<![\\w.])(?:${OCTET}\\.){3}${OCTET}(?![\\w@]|\\.\\d)`, 'g');
 const RE_IPV6_CANDIDATE = /(?<![\w:])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![\w:])/g;
-const RE_PHONE_IN = /(?<![\w@.+])(?<!\d[ -])(?:\+91[ -]?|0)?[6-9]\d{4}[ -]?\d{5}(?![\w@])(?![ -]\d)(?!\.\d)/g;
+// '#' is excluded so identifiers like ticket#9876543210 are not mistaken for a mobile number.
+const RE_PHONE_IN = /(?<![\w@.+#])(?<!\d[ -])(?:\+91[ -]?|0)?[6-9]\d{4}[ -]?\d{5}(?![\w@])(?![ -]\d)(?!\.\d)/g;
 const RE_PHONE_INTL =
   /(?<![\w@.])\+\d{1,3}[ .-]?(?:\(\d{1,4}\)|\d{1,4})(?:[ .-]?\d{2,4}){1,4}(?![\w@])(?!\.\d)/g;
 

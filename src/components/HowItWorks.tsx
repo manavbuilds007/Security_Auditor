@@ -7,7 +7,7 @@ const SUPPORTED: { name: string; formats: string; check: string }[] = [
   { name: 'Phone', formats: '+91 98765 43210, 09876543210, +1 (415) 555-2671', check: 'Indian mobiles, or +country-code numbers with 8–15 digits' },
   { name: 'Credit card', formats: '4111 1111 1111 1111, 5500-0000-0000-0004', check: '13–19 digits, spaces or dashes; must pass Luhn' },
   { name: 'Aadhaar', formats: '2345 6789 0124', check: '12 digits, not starting 0 or 1; optional Verhoeff checksum' },
-  { name: 'PAN', formats: 'ABCDE1234F', check: '5 capital letters, 4 digits, 1 capital letter' },
+  { name: 'PAN', formats: 'ABCPE1234F', check: '5 capital letters, 4 digits, 1 capital letter; the 4th letter must be a holder type (P, C, H, F, A, T, B, L, J or G)' },
   { name: 'IPv4', formats: '192.168.10.45', check: 'Each part 0–255 (so 999.1.1.1 is ignored)' },
   { name: 'IPv6', formats: '2001:db8::1, ::1', check: 'Full or compressed; timestamps like 10:42:13 are ignored' },
 ];

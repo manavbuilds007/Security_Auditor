@@ -9,7 +9,7 @@ Stack: Vite · React · TypeScript · Tailwind CSS · lucide-react · Vitest.
 ## Features
 
 - **Input:** paste text, **drag and drop** a `.txt` / `.csv` file anywhere on the page, or use Upload (all read locally with `FileReader`; delimiters, rows and line endings are preserved; other file types are refused with a message). One-click sample log and sample CSV.
-- **Detection:** emails, Indian/international phones, IPv4 (octets 0–255), IPv6, Indian PAN, Aadhaar (12 digits, not starting with 0/1, optional Verhoeff checksum), and 13–19 digit credit cards validated with Luhn.
+- **Detection:** emails, Indian/international phones, IPv4 (octets 0–255), IPv6, Indian PAN (the 4th letter must be a valid holder type, so words like `ERROR1234X` are ignored), Aadhaar (12 digits, not starting with 0/1, optional Verhoeff checksum), and 13–19 digit credit cards validated with Luhn.
 - **Overlaps:** resolved by precedence `CARD > AADHAAR > PAN > EMAIL > IPV6 > IPV4 > PHONE`, then length.
 - **Rejected false positives:** card-shaped numbers that fail Luhn (and, if enabled, Aadhaar that fail Verhoeff) are left untouched and counted.
 - **Modes (live toggle):**

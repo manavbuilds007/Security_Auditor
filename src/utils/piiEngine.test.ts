@@ -72,8 +72,25 @@ describe('detectors', () => {
     expect(expandIPv6('2001:DB8::1')).toBe('2001:0db8:0000:0000:0000:0000:0000:0001');
   });
 
+  it('does not treat ticket#9876543210 (an identifier) as a mobile number, but still finds real ones', () => {
+    expect(typesOf('ticket#9876543210')).toEqual([]);
+    expect(typesOf('Ref #9876543210 closed')).toEqual([]);
+    expect(typesOf('ticket 9876543210')).toEqual([['PHONE', '9876543210']]);
+    expect(typesOf('ticket: 9876543210')).toEqual([['PHONE', '9876543210']]);
+    expect(sanitize('ticket#9876543210', full).output).toBe('ticket#9876543210');
+  });
+
+  it('requires a valid PAN holder-type 4th letter, so words like ERROR1234X are ignored', () => {
+    expect(typesOf('code ERROR1234X seen')).toEqual([]);
+    expect(sanitize('ERROR1234X', full).output).toBe('ERROR1234X');
+    // Every real holder type is accepted...
+    for (const c of 'ABCFGHLJPT') expect(typesOf(`PAN ABC${c}E1234F`), c).toEqual([['PAN', `ABC${c}E1234F`]]);
+    // ...and other 4th letters are not.
+    for (const c of 'DEIKMNOQRSUVWXYZ') expect(typesOf(`PAN ABC${c}E1234F`), c).toEqual([]);
+  });
+
   it('finds PAN with exact shape only', () => {
-    expect(typesOf('PAN ABCDE1234F ok')).toEqual([['PAN', 'ABCDE1234F']]);
+    expect(typesOf('PAN ABCPE1234F ok')).toEqual([['PAN', 'ABCPE1234F']]);
     expect(typesOf('abcde1234f ABCD1234F ABCDE12345 ABCDEF1234F')).toEqual([]);
   });
 
@@ -147,7 +164,7 @@ describe('redaction modes', () => {
     expect(p('john@domain.com')).toBe('j***@domain.com');
     expect(p('4111 1111 1111 1111')).toBe('XXXX-XXXX-XXXX-1111');
     expect(p('378282246310005')).toBe('XXXX-XXXX-XXX-0005');
-    expect(p('ABCDE1234F')).toBe('XXXXX1234X');
+    expect(p('ABCPE1234F')).toBe('XXXXX1234X');
     expect(p('2345 6789 0124')).toBe('XXXX-XXXX-0124');
     expect(p('+91 98765 43210')).toBe('+91-XXXXXX3210');
     expect(p('9876543210')).toBe('+91-XXXXXX3210');
@@ -163,7 +180,7 @@ describe('redaction modes', () => {
   });
 
   it('pseudonym counters are per type and restart on every run', () => {
-    const text = 'a@x.com 4111111111111111 ABCDE1234F 4111 1111 1111 1111 b@x.com 2345 6789 0124';
+    const text = 'a@x.com 4111111111111111 ABCPE1234F 4111 1111 1111 1111 b@x.com 2345 6789 0124';
     const first = sanitize(text, { mode: 'pseudonym' }).output;
     expect(first).toBe('USER_01 CARD_01 PAN_01 CARD_01 USER_02 AADHAAR_01');
     expect(sanitize(text, { mode: 'pseudonym' }).output).toBe(first);
