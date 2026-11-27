@@ -39,8 +39,8 @@ and approved before any files were created.
 Request: clearer first-run experience, clearer control wording/tooltips, obvious export, and a "How it works"
 section.
 
-- **Empty states:** a shared `EmptyState` component. The input panel shows guidance plus *Try the sample
-  log / CSV* buttons over the textarea (the overlay passes clicks through to the textarea). The Source pane
+- **Empty states:** a shared `EmptyState` component. The input panel shows guidance plus _Try the sample
+  log / CSV_ buttons over the textarea (the overlay passes clicks through to the textarea). The Source pane
   repeats the sample buttons; the Sanitized pane explains what will appear. Panes return to normal as soon as
   there is text.
 - **Controls:** numbered steps (1 add text, 2 choose how to redact, 3 copy/download). Tooltips explain Full,

@@ -16,7 +16,9 @@ export function detectLineEnding(text: string): LineEnding {
 
 /** Picks the delimiter that appears (outside quotes) most consistently across the first rows. */
 export function detectDelimiter(text: string): string {
-  const rows = splitRows(text).slice(0, 10).filter((r) => r.length > 0);
+  const rows = splitRows(text)
+    .slice(0, 10)
+    .filter((r) => r.length > 0);
   let best = ',';
   let bestScore = 0;
   for (const d of DELIMITERS) {

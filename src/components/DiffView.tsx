@@ -104,13 +104,22 @@ export default function DiffView({ source, output, onSample, animKey, typeLabels
 
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50">
-      <div role="tablist" aria-label="Pane to show" className="flex gap-1 border-b border-slate-200 px-3 py-2 lg:hidden">
+      <div
+        role="tablist"
+        aria-label="Pane to show"
+        className="flex gap-1 border-b border-slate-200 px-3 py-2 lg:hidden"
+      >
         {tab('sanitized', 'Sanitized')}
         {tab('source', 'Source')}
       </div>
 
       {/* One scroll container for both sides: rows are source|sanitized pairs, so lines never drift apart. */}
-      <div className="max-h-[32rem] min-h-40 overflow-auto" tabIndex={0} role="region" aria-label="Source and sanitized text, line by line">
+      <div
+        className="max-h-[32rem] min-h-40 overflow-auto"
+        tabIndex={0}
+        role="region"
+        aria-label="Source and sanitized text, line by line"
+      >
         <div className="sticky top-0 z-10 grid grid-cols-1 border-b border-slate-200 bg-slate-50 text-[13px] font-semibold text-slate-800 lg:grid-cols-2">
           <h3 className={`px-4 py-2.5 ${srcCell}`}>
             Source <span className="font-normal text-slate-600">· detected PII highlighted</span>
@@ -139,17 +148,29 @@ export default function DiffView({ source, output, onSample, animKey, typeLabels
             {shown.map((pair, li) => (
               <div key={li} className="grid grid-cols-1 lg:grid-cols-2">
                 <div className={`${cell} ${srcCell}`}>
-                  <Segments segments={pair.source} side="source" animKey={animKey} typeLabels={typeLabels} nextDelay={nextDelay} />
+                  <Segments
+                    segments={pair.source}
+                    side="source"
+                    animKey={animKey}
+                    typeLabels={typeLabels}
+                    nextDelay={nextDelay}
+                  />
                 </div>
                 <div className={`${cell} lg:border-l lg:border-slate-200 ${outCell}`}>
-                  <Segments segments={pair.output} side="output" animKey={animKey} typeLabels={typeLabels} nextDelay={nextDelay} />
+                  <Segments
+                    segments={pair.output}
+                    side="output"
+                    animKey={animKey}
+                    typeLabels={typeLabels}
+                    nextDelay={nextDelay}
+                  />
                 </div>
               </div>
             ))}
             {pairs.length > MAX_LINES && (
               <p className="px-4 pt-3 font-sans text-[13px] text-slate-600">
-                Showing the first {MAX_LINES.toLocaleString()} of {pairs.length.toLocaleString()} lines. Copy and Download
-                include everything.
+                Showing the first {MAX_LINES.toLocaleString()} of {pairs.length.toLocaleString()} lines. Copy and
+                Download include everything.
               </p>
             )}
           </div>

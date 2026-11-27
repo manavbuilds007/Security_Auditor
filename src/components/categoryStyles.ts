@@ -6,10 +6,14 @@ import type { PiiType } from '../utils/piiEngine';
  * on highlights in the Sanitized pane.
  */
 /** How a rejected look-alike number (failed Luhn/Verhoeff) is drawn, and the words used to describe it in help text. */
-export const REJECTED_MARK_CLASS = 'rounded-sm bg-slate-200/70 underline decoration-slate-500 decoration-dotted underline-offset-4';
+export const REJECTED_MARK_CLASS =
+  'rounded-sm bg-slate-200/70 underline decoration-slate-500 decoration-dotted underline-offset-4';
 export const REJECTED_MARK_DESCRIPTION = 'dotted grey underline';
 
-export const CATEGORY_STYLES: Record<PiiType, { family: string; tag: string; mark: string; chipOn: string; dot: string }> = {
+export const CATEGORY_STYLES: Record<
+  PiiType,
+  { family: string; tag: string; mark: string; chipOn: string; dot: string }
+> = {
   CARD: {
     family: 'red',
     tag: 'CARD',

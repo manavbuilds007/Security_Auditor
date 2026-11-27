@@ -4,10 +4,23 @@ import { REJECTED_MARK_DESCRIPTION } from './categoryStyles';
 
 const SUPPORTED: { name: string; formats: string; check: string }[] = [
   { name: 'Email', formats: 'jane.doe+tag@example.org', check: 'Pattern match, case-insensitive' },
-  { name: 'Phone', formats: '+91 98765 43210, 09876543210, +1 (415) 555-2671', check: 'Indian mobiles, or +country-code numbers with 8–15 digits' },
-  { name: 'Credit card', formats: '4111 1111 1111 1111, 5500-0000-0000-0004', check: '13–19 digits, spaces or dashes; must pass Luhn' },
+  {
+    name: 'Phone',
+    formats: '+91 98765 43210, 09876543210, +1 (415) 555-2671',
+    check: 'Indian mobiles, or +country-code numbers with 8–15 digits',
+  },
+  {
+    name: 'Credit card',
+    formats: '4111 1111 1111 1111, 5500-0000-0000-0004',
+    check: '13–19 digits, spaces or dashes; must pass Luhn',
+  },
   { name: 'Aadhaar', formats: '2345 6789 0124', check: '12 digits, not starting 0 or 1; optional Verhoeff checksum' },
-  { name: 'PAN', formats: 'ABCPE1234F', check: '5 capital letters, 4 digits, 1 capital letter; the 4th letter must be a holder type (P, C, H, F, A, T, B, L, J or G)' },
+  {
+    name: 'PAN',
+    formats: 'ABCPE1234F',
+    check:
+      '5 capital letters, 4 digits, 1 capital letter; the 4th letter must be a holder type (P, C, H, F, A, T, B, L, J or G)',
+  },
   { name: 'IPv4', formats: '192.168.10.45', check: 'Each part 0–255 (so 999.1.1.1 is ignored)' },
   { name: 'IPv6', formats: '2001:db8::1, ::1', check: 'Full or compressed; timestamps like 10:42:13 are ignored' },
 ];
@@ -70,16 +83,15 @@ export default function HowItWorks() {
           <h3 className="text-sm font-semibold text-slate-900">Fewer false alarms</h3>
           <p className="mt-1 text-[13px] leading-relaxed text-slate-700">
             Long digit strings such as order IDs look like card numbers. Real cards end in a check digit (the{' '}
-            <strong>Luhn</strong> check), and about 9 in 10 random 16-digit numbers fail it. Those are left
-            untouched, marked with a {REJECTED_MARK_DESCRIPTION}, and counted under{' '}
-            <em>Rejected false positives</em>. A rare ID that happens to pass Luhn is still redacted, which errs on
-            the safe side. If the same digits could be several things, the more specific type wins: card, then
-            Aadhaar, PAN, email, IPv6, IPv4, and finally phone.
+            <strong>Luhn</strong> check), and about 9 in 10 random 16-digit numbers fail it. Those are left untouched,
+            marked with a {REJECTED_MARK_DESCRIPTION}, and counted under <em>Rejected false positives</em>. A rare ID
+            that happens to pass Luhn is still redacted, which errs on the safe side. If the same digits could be
+            several things, the more specific type wins: card, then Aadhaar, PAN, email, IPv6, IPv4, and finally phone.
           </p>
           <h3 className="mt-4 text-sm font-semibold text-slate-900">Good to know</h3>
           <p className="mt-1 text-[13px] leading-relaxed text-slate-700">
-            Patterns do not find names, street addresses or free-text secrets. CSV files keep their delimiters,
-            quotes, rows and line endings. Always skim the result before sharing it.
+            Patterns do not find names, street addresses or free-text secrets. CSV files keep their delimiters, quotes,
+            rows and line endings. Always skim the result before sharing it.
           </p>
         </div>
 

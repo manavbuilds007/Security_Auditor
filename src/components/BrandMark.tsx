@@ -19,7 +19,13 @@ export default function BrandMark({ className = 'h-7 w-7' }: { className?: strin
         strokeWidth="1.9"
         strokeLinejoin="round"
       />
-      <path d="m8.6 12.2 2.4 2.4 4.4-4.8" stroke={`url(#${id})`} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="m8.6 12.2 2.4 2.4 4.4-4.8"
+        stroke={`url(#${id})`}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

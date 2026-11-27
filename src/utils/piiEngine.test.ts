@@ -174,7 +174,8 @@ describe('redaction modes', () => {
   });
 
   it('pseudonymization is consistent for repeats and normalized variants', () => {
-    const text = 'A@X.com b@y.com a@x.com | 192.168.1.1 2001:db8::1 192.168.1.1 | +91 98765 43210, 09876543210, 9876543210';
+    const text =
+      'A@X.com b@y.com a@x.com | 192.168.1.1 2001:db8::1 192.168.1.1 | +91 98765 43210, 09876543210, 9876543210';
     const out = sanitize(text, { mode: 'pseudonym' }).output;
     expect(out).toBe('USER_01 USER_02 USER_01 | IP_01 IP_02 IP_01 | PHONE_01, PHONE_01, PHONE_01');
   });

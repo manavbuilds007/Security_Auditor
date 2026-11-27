@@ -22,7 +22,16 @@ const btn =
 
 const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes('Files');
 
-export default function InputPanel({ text, lineEnding, fileName, acceptDrops, onChange, onFile, onSample, onClear }: Props) {
+export default function InputPanel({
+  text,
+  lineEnding,
+  fileName,
+  acceptDrops,
+  onChange,
+  onFile,
+  onSample,
+  onClear,
+}: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
@@ -108,7 +117,12 @@ export default function InputPanel({ text, lineEnding, fileName, acceptDrops, on
             e.target.value = '';
           }}
         />
-        <button type="button" className={btn} onClick={() => fileRef.current?.click()} title="Open a .txt or .csv file. It is read locally and never uploaded.">
+        <button
+          type="button"
+          className={btn}
+          onClick={() => fileRef.current?.click()}
+          title="Open a .txt or .csv file. It is read locally and never uploaded."
+        >
           <Upload className="h-4 w-4" aria-hidden /> Upload .txt / .csv
         </button>
         <button type="button" className={btn} onClick={() => onSample('log')}>
@@ -131,7 +145,10 @@ export default function InputPanel({ text, lineEnding, fileName, acceptDrops, on
       </div>
 
       {error && (
-        <p role="alert" className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-[13px] font-medium text-red-800">
+        <p
+          role="alert"
+          className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-[13px] font-medium text-red-800"
+        >
           <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden /> {error}
         </p>
       )}
@@ -158,9 +175,8 @@ export default function InputPanel({ text, lineEnding, fileName, acceptDrops, on
               primary={{ label: 'Upload a .txt or .csv file', onClick: () => fileRef.current?.click() }}
               onSample={onSample}
             >
-              Choose a file (or drop one anywhere on this page), or click in this window and type or paste.
-              Emails, phones, cards, Aadhaar, PAN and IP addresses are redacted as you go. Everything stays in this
-              browser tab.
+              Choose a file (or drop one anywhere on this page), or click in this window and type or paste. Emails,
+              phones, cards, Aadhaar, PAN and IP addresses are redacted as you go. Everything stays in this browser tab.
             </EmptyState>
           </div>
         )}

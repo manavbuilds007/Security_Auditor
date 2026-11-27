@@ -35,7 +35,12 @@ describe('orthographic projection', () => {
 
   it('hides the far hemisphere and keeps points inside the unit disc', () => {
     expect(project(0, 180, 0, 0).depth).toBeLessThan(0);
-    for (const [lat, lon] of [[10, 20], [-40, 130], [60, -100], [85, 0]]) {
+    for (const [lat, lon] of [
+      [10, 20],
+      [-40, 130],
+      [60, -100],
+      [85, 0],
+    ]) {
       const p = project(lat, lon, 15, 40);
       expect(Math.hypot(p.x, p.y)).toBeLessThanOrEqual(1 + 1e-9);
     }
@@ -57,10 +62,22 @@ describe('shortestAngle', () => {
 
 describe('land mask', () => {
   it('has land where expected and ocean where expected', () => {
-    for (const [lat, lon] of [[40, -100], [20, 78], [23, 10], [48, 10], [-25, 135], [-10, -55]]) {
+    for (const [lat, lon] of [
+      [40, -100],
+      [20, 78],
+      [23, 10],
+      [48, 10],
+      [-25, 135],
+      [-10, -55],
+    ]) {
       expect(isLand(lat, lon), `${lat},${lon}`).toBe(true);
     }
-    for (const [lat, lon] of [[0, -150], [0, -30], [-30, 80], [10, 170]]) {
+    for (const [lat, lon] of [
+      [0, -150],
+      [0, -30],
+      [-30, 80],
+      [10, 170],
+    ]) {
       expect(isLand(lat, lon), `${lat},${lon}`).toBe(false);
     }
   });
@@ -91,7 +108,12 @@ describe('scenarios', () => {
 
 describe('vector projection (arcs above the surface)', () => {
   it('agrees with the lat/lon projection at the surface', () => {
-    for (const [lat, lon, cLat, cLon] of [[13, 77.6, 16, 78], [40.7, -74, 38, -98], [51.5, -0.1, 30, 5], [-33, 151, 10, 120]]) {
+    for (const [lat, lon, cLat, cLon] of [
+      [13, 77.6, 16, 78],
+      [40.7, -74, 38, -98],
+      [51.5, -0.1, 30, 5],
+      [-33, 151, 10, 120],
+    ]) {
       const a = project(lat, lon, cLat, cLon);
       const b = projectVec(latLonToVec(lat, lon), 1, makeCamera(cLat, cLon), { x: 0, y: 0, depth: 0 });
       expect(b.x).toBeCloseTo(a.x, 9);
@@ -131,7 +153,12 @@ describe('great-circle interpolation', () => {
 
 describe('cursor helpers', () => {
   it('turns pointer positions into unit light vectors, clamped inside the disc', () => {
-    for (const [x, y] of [[0, 0], [0.4, -0.3], [3, 4], [-0.9, 0.2]]) {
+    for (const [x, y] of [
+      [0, 0],
+      [0.4, -0.3],
+      [3, 4],
+      [-0.9, 0.2],
+    ]) {
       const l = pointerToLight(x, y);
       expect(Math.hypot(l.x, l.y, l.z)).toBeCloseTo(1, 9);
       expect(l.z).toBeGreaterThanOrEqual(0);
@@ -140,7 +167,10 @@ describe('cursor helpers', () => {
   });
 
   it('finds the nearest pin within the hit radius only', () => {
-    const pins = [{ x: 10, y: 10, id: 'a' }, { x: 40, y: 10, id: 'b' }];
+    const pins = [
+      { x: 10, y: 10, id: 'a' },
+      { x: 40, y: 10, id: 'b' },
+    ];
     expect(nearestPin(pins, 12, 11, 14)?.id).toBe('a');
     expect(nearestPin(pins, 36, 8, 14)?.id).toBe('b');
     expect(nearestPin(pins, 100, 100, 14)).toBeNull();

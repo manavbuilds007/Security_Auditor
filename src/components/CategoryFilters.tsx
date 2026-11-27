@@ -27,7 +27,9 @@ export default function CategoryFilters({ enabled, counts, onToggle }: Props) {
               aria-pressed={on}
               onClick={() => onToggle(t)}
               className={`press inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-                on ? CATEGORY_STYLES[t].chipOn : 'border-slate-300 bg-white text-slate-600 line-through decoration-slate-400'
+                on
+                  ? CATEGORY_STYLES[t].chipOn
+                  : 'border-slate-300 bg-white text-slate-600 line-through decoration-slate-400'
               }`}
             >
               <span className={`h-2 w-2 rounded-full ${on ? CATEGORY_STYLES[t].dot : 'bg-slate-300'}`} aria-hidden />

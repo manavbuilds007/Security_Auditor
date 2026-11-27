@@ -2,6 +2,26 @@
  * PII detection + redaction engine. Pure functions, no DOM, no network.
  */
 
+import { luhnCheck, verhoeffCheck } from './checksums';
+import {
+  RE_AADHAAR,
+  RE_CARD,
+  RE_EMAIL,
+  RE_IPV4,
+  RE_IPV6_CANDIDATE,
+  RE_PAN,
+  RE_PHONE_IN,
+  RE_PHONE_INTL,
+  digitsOf,
+  expandIPv6,
+  isValidIPv6,
+  normalize,
+  normalizePhone,
+} from './patterns';
+
+export { luhnCheck, verhoeffCheck, verhoeffDigit } from './checksums';
+export { expandIPv6, isValidIPv6 } from './patterns';
+
 export type PiiType = 'CARD' | 'AADHAAR' | 'PAN' | 'EMAIL' | 'IPV6' | 'IPV4' | 'PHONE';
 export type RedactionMode = 'full' | 'partial' | 'pseudonym';
 
@@ -79,142 +99,6 @@ export interface SanitizeResult {
 }
 
 /* ------------------------------------------------------------------ */
-/* Checksums                                                           */
-/* ------------------------------------------------------------------ */
-
-export function luhnCheck(digits: string): boolean {
-  if (!/^\d+$/.test(digits)) return false;
-  let sum = 0;
-  let double = false;
-  for (let i = digits.length - 1; i >= 0; i--) {
-    let n = digits.charCodeAt(i) - 48;
-    if (double) {
-      n *= 2;
-      if (n > 9) n -= 9;
-    }
-    sum += n;
-    double = !double;
-  }
-  return sum % 10 === 0;
-}
-
-const VERHOEFF_D = [
-  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-  [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
-  [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
-  [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
-  [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
-  [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
-  [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
-  [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
-  [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
-  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-];
-const VERHOEFF_P = [
-  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-  [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
-  [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
-  [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
-  [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
-  [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
-  [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
-  [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
-];
-const VERHOEFF_INV = [0, 4, 3, 2, 1, 5, 6, 7, 8, 9];
-
-export function verhoeffCheck(digits: string): boolean {
-  if (!/^\d+$/.test(digits)) return false;
-  let c = 0;
-  for (let i = 0; i < digits.length; i++) {
-    const d = digits.charCodeAt(digits.length - 1 - i) - 48;
-    c = VERHOEFF_D[c][VERHOEFF_P[i % 8][d]];
-  }
-  return c === 0;
-}
-
-/** Check digit to append to `payload` so the whole string passes `verhoeffCheck`. */
-export function verhoeffDigit(payload: string): number {
-  let c = 0;
-  for (let i = 0; i < payload.length; i++) {
-    const d = payload.charCodeAt(payload.length - 1 - i) - 48;
-    c = VERHOEFF_D[c][VERHOEFF_P[(i + 1) % 8][d]];
-  }
-  return VERHOEFF_INV[c];
-}
-
-/* ------------------------------------------------------------------ */
-/* Patterns                                                            */
-/* ------------------------------------------------------------------ */
-
-const OCTET = '(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)';
-
-const RE_EMAIL =
-  /(?<![\w.%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}(?![\w-])/g;
-const RE_CARD = /(?<![\w@.])(?<!\d[ -])\d(?:[ -]?\d){12,18}(?![\w@])(?![ -]\d)(?!\.\d)/g;
-const RE_AADHAAR = /(?<![\w@.])(?<!\d[ -])[2-9]\d{3}([ -]?)\d{4}\1\d{4}(?![\w@])(?![ -]\d)(?!\.\d)/g;
-// 4th letter is the holder type: P person, C company, H HUF, F firm, A AOP, T trust, B BOI, L local authority, J juridical, G government.
-// This rejects uppercase words that merely look like a PAN, e.g. ERROR1234X.
-const RE_PAN = /(?<![\w@.])[A-Z]{3}[ABCFGHLJPT][A-Z]\d{4}[A-Z](?![\w@])/g;
-const RE_IPV4 = new RegExp(`(?<![\\w.])(?:${OCTET}\\.){3}${OCTET}(?![\\w@]|\\.\\d)`, 'g');
-const RE_IPV6_CANDIDATE = /(?<![\w:])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![\w:])/g;
-// '#' is excluded so identifiers like ticket#9876543210 are not mistaken for a mobile number.
-const RE_PHONE_IN = /(?<![\w@.+#])(?<!\d[ -])(?:\+91[ -]?|0)?[6-9]\d{4}[ -]?\d{5}(?![\w@])(?![ -]\d)(?!\.\d)/g;
-const RE_PHONE_INTL =
-  /(?<![\w@.])\+\d{1,3}[ .-]?(?:\(\d{1,4}\)|\d{1,4})(?:[ .-]?\d{2,4}){1,4}(?![\w@])(?!\.\d)/g;
-
-export function isValidIPv6(s: string): boolean {
-  if (!/^[0-9a-f:]+$/i.test(s) || s.includes(':::')) return false;
-  const hex = /^[0-9a-f]{1,4}$/i;
-  const parts = s.split('::');
-  if (parts.length > 2) return false;
-  if (parts.length === 1) {
-    const groups = s.split(':');
-    return groups.length === 8 && groups.every((g) => hex.test(g));
-  }
-  const left = parts[0] === '' ? [] : parts[0].split(':');
-  const right = parts[1] === '' ? [] : parts[1].split(':');
-  return left.length + right.length <= 7 && [...left, ...right].every((g) => hex.test(g));
-}
-
-export function expandIPv6(s: string): string {
-  const parts = s.toLowerCase().split('::');
-  const left = parts[0] === '' ? [] : parts[0].split(':');
-  const right = parts.length > 1 && parts[1] !== '' ? parts[1].split(':') : [];
-  const fill = parts.length > 1 ? new Array(8 - left.length - right.length).fill('0') : [];
-  return [...left, ...fill, ...right].map((g) => g.padStart(4, '0')).join(':');
-}
-
-function digitsOf(s: string): string {
-  return s.replace(/\D/g, '');
-}
-
-/** National significant number for Indian numbers; plain digits otherwise. */
-function normalizePhone(value: string): string {
-  const d = digitsOf(value);
-  if (d.length === 12 && d.startsWith('91')) return d.slice(2);
-  if (d.length === 11 && d.startsWith('0')) return d.slice(1);
-  return d;
-}
-
-function normalize(type: PiiType, value: string): string {
-  switch (type) {
-    case 'EMAIL':
-      return value.toLowerCase();
-    case 'CARD':
-    case 'AADHAAR':
-      return digitsOf(value);
-    case 'PAN':
-      return value.toUpperCase();
-    case 'PHONE':
-      return normalizePhone(value);
-    case 'IPV6':
-      return expandIPv6(value);
-    case 'IPV4':
-      return value;
-  }
-}
-
-/* ------------------------------------------------------------------ */
 /* Detection                                                           */
 /* ------------------------------------------------------------------ */
 
@@ -245,26 +129,24 @@ export function detect(
     }
   };
 
-  // Cards: Luhn-validated; failures are tracked as rejected false positives.
-  for (const m of text.matchAll(RE_CARD)) {
-    const value = m[0];
-    const start = m.index ?? 0;
-    if (luhnCheck(digitsOf(value))) {
-      candidates.push({ type: 'CARD', start, end: start + value.length, value });
-    } else {
-      rejections.push({ type: 'CARD', start, end: start + value.length, value, reason: 'luhn' });
+  // Checksummed types: a failing candidate is tracked as a rejected false positive instead of dropped silently.
+  const collectChecked = (
+    type: 'CARD' | 'AADHAAR',
+    re: RegExp,
+    reason: RejectionReason,
+    passes: (digits: string) => boolean,
+  ) => {
+    for (const m of text.matchAll(re)) {
+      const value = m[0];
+      const start = m.index ?? 0;
+      const span = { start, end: start + value.length, value };
+      if (passes(digitsOf(value))) candidates.push({ type, ...span });
+      else rejections.push({ type, reason, ...span });
     }
-  }
+  };
 
-  for (const m of text.matchAll(RE_AADHAAR)) {
-    const value = m[0];
-    const start = m.index ?? 0;
-    if (opts.aadhaarVerhoeff && !verhoeffCheck(digitsOf(value))) {
-      rejections.push({ type: 'AADHAAR', start, end: start + value.length, value, reason: 'verhoeff' });
-    } else {
-      candidates.push({ type: 'AADHAAR', start, end: start + value.length, value });
-    }
-  }
+  collectChecked('CARD', RE_CARD, 'luhn', luhnCheck);
+  collectChecked('AADHAAR', RE_AADHAAR, 'verhoeff', (d) => !opts.aadhaarVerhoeff || verhoeffCheck(d));
 
   collect('PAN', RE_PAN);
   collect('EMAIL', RE_EMAIL);
@@ -407,7 +289,12 @@ export function sanitize(text: string, options: SanitizeOptions): SanitizeResult
           : { kind: 'text', text: original },
       );
     } else if (span.rejection) {
-      const seg: Segment = { kind: 'rejected', text: original, type: span.rejection.type, reason: span.rejection.reason };
+      const seg: Segment = {
+        kind: 'rejected',
+        text: original,
+        type: span.rejection.type,
+        reason: span.rejection.reason,
+      };
       sourceSegments.push(seg);
       outputSegments.push({ ...seg });
     }

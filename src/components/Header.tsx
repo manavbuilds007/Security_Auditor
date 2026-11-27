@@ -24,7 +24,13 @@ export default function Header({ onReplayIntro }: { onReplayIntro: () => void })
             <Lock className="h-3.5 w-3.5" aria-hidden />
             {BADGE}
           </span>
-          <button type="button" onClick={onReplayIntro} aria-label="Replay intro" title="Replay the intro" className={`${round} inline-flex items-center gap-1.5 px-2.5 text-[13px] font-medium`}>
+          <button
+            type="button"
+            onClick={onReplayIntro}
+            aria-label="Replay intro"
+            title="Replay the intro"
+            className={`${round} inline-flex items-center gap-1.5 px-2.5 text-[13px] font-medium`}
+          >
             <Globe2 className="h-4 w-4" aria-hidden />
             <span className="hidden md:inline">Replay Intro</span>
           </button>
@@ -35,8 +41,14 @@ export default function Header({ onReplayIntro }: { onReplayIntro: () => void })
             title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
             className={`${round} relative w-9`}
           >
-            <Sun className={`${icon} ${dark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`} aria-hidden />
-            <Moon className={`${icon} ${dark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`} aria-hidden />
+            <Sun
+              className={`${icon} ${dark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}
+              aria-hidden
+            />
+            <Moon
+              className={`${icon} ${dark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`}
+              aria-hidden
+            />
           </button>
         </div>
       </div>

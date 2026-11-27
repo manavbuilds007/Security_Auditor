@@ -71,57 +71,60 @@ export default function App() {
           {/* The working surface: visible immediately, no scroll-reveal. On wide screens the settings sit in a
               sticky right column, so the input and the live result are always on screen together. */}
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_21rem] xl:gap-x-6">
-          <div className="xl:col-start-1 xl:row-start-1">
-          <InputPanel
-            acceptDrops={!introOpen}
-            text={text}
-            lineEnding={lineEnding}
-            fileName={fileName}
-            onChange={setText}
-            onFile={(name, content) => {
-              setFileName(name);
-              setText(content);
-            }}
-            onSample={loadSample}
-            onClear={() => {
-              setText('');
-              setFileName('');
-            }}
-          />
-          </div>
-          <div className="xl:sticky xl:top-4 xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:max-h-[calc(100vh-2rem)] xl:self-start xl:overflow-y-auto">
-          <ControlsBar
-            mode={mode}
-            typedTags={typedTags}
-            aadhaarVerhoeff={aadhaarVerhoeff}
-            typeLabels={typeLabels}
-            enabled={enabled}
-            counts={result.counts}
-            onMode={setMode}
-            onTypedTags={setTypedTags}
-            onAadhaarVerhoeff={setAadhaarVerhoeff}
-            onTypeLabels={setTypeLabels}
-            onToggleType={(t) => setEnabled((e) => ({ ...e, [t]: !e[t] }))}
-          />
-          </div>
-          <section className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm xl:col-start-1 xl:row-start-2" aria-label="Review and export">
-            <StepHeading n={3} title="Review what was found" hint="Highlights show what changes" />
-            <div className="mt-4">
-              <SummaryBar result={result} redacted={redacted} hasText={text.length > 0} csv={csv} />
-            </div>
-            <div className="mt-4">
-              <DiffView
-                source={result.sourceSegments}
-                output={result.outputSegments}
+            <div className="xl:col-start-1 xl:row-start-1">
+              <InputPanel
+                acceptDrops={!introOpen}
+                text={text}
+                lineEnding={lineEnding}
+                fileName={fileName}
+                onChange={setText}
+                onFile={(name, content) => {
+                  setFileName(name);
+                  setText(content);
+                }}
                 onSample={loadSample}
-                animKey={animKey}
-                typeLabels={typeLabels}
+                onClear={() => {
+                  setText('');
+                  setFileName('');
+                }}
               />
             </div>
-            <div className="mt-5">
-              <ExportBar output={result.output} fileName={fileName} />
+            <div className="xl:sticky xl:top-4 xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:max-h-[calc(100vh-2rem)] xl:self-start xl:overflow-y-auto">
+              <ControlsBar
+                mode={mode}
+                typedTags={typedTags}
+                aadhaarVerhoeff={aadhaarVerhoeff}
+                typeLabels={typeLabels}
+                enabled={enabled}
+                counts={result.counts}
+                onMode={setMode}
+                onTypedTags={setTypedTags}
+                onAadhaarVerhoeff={setAadhaarVerhoeff}
+                onTypeLabels={setTypeLabels}
+                onToggleType={(t) => setEnabled((e) => ({ ...e, [t]: !e[t] }))}
+              />
             </div>
-          </section>
+            <section
+              className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm xl:col-start-1 xl:row-start-2"
+              aria-label="Review and export"
+            >
+              <StepHeading n={3} title="Review what was found" hint="Highlights show what changes" />
+              <div className="mt-4">
+                <SummaryBar result={result} redacted={redacted} hasText={text.length > 0} csv={csv} />
+              </div>
+              <div className="mt-4">
+                <DiffView
+                  source={result.sourceSegments}
+                  output={result.outputSegments}
+                  onSample={loadSample}
+                  animKey={animKey}
+                  typeLabels={typeLabels}
+                />
+              </div>
+              <div className="mt-5">
+                <ExportBar output={result.output} fileName={fileName} />
+              </div>
+            </section>
           </div>
 
           {/* Supporting content lives below the tool, so returning users reach the input immediately. */}

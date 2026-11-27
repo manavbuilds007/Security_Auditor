@@ -16,7 +16,10 @@ describe('category styles', () => {
 
   it('keeps each style internally consistent with its family', () => {
     for (const s of styles) {
-      for (const cls of [s.mark, s.chipOn, s.dot].join(' ').split(' ').filter((c) => /-(50|200|300|500|900|950)$/.test(c))) {
+      for (const cls of [s.mark, s.chipOn, s.dot]
+        .join(' ')
+        .split(' ')
+        .filter((c) => /-(50|200|300|500|900|950)$/.test(c))) {
         expect(cls, s.tag).toContain(s.family);
       }
     }
@@ -37,6 +40,9 @@ describe('copy that must match behaviour', () => {
   });
 
   it('never claims the app blocks, intercepts or prevents anything: it cleans text the user then shares', () => {
-    for (const s of SCENARIOS) expect(`${s.leak} ${s.outcome}`, s.id).not.toMatch(/\b(block(ed|s|ing)?|prevent(ed|s)?|intercept(ed|s)?|stop(ped|s)?)\b/i);
+    for (const s of SCENARIOS)
+      expect(`${s.leak} ${s.outcome}`, s.id).not.toMatch(
+        /\b(block(ed|s|ing)?|prevent(ed|s)?|intercept(ed|s)?|stop(ped|s)?)\b/i,
+      );
   });
 });

@@ -399,7 +399,14 @@ export function drawGlobe(ctx: CanvasRenderingContext2D, f: Frame): ScreenPin[] 
 
   const h = pins[f.hover];
   if (h && h.depth > 0.05 && !f.dragging) {
-    tooltip(ctx, size, h.x, h.y, `${h.city} · ${h.region}`, h.scenario === f.active ? 'Showing this scenario' : 'Click to view this scenario');
+    tooltip(
+      ctx,
+      size,
+      h.x,
+      h.y,
+      `${h.city} · ${h.region}`,
+      h.scenario === f.active ? 'Showing this scenario' : 'Click to view this scenario',
+    );
   }
   return pins;
 }

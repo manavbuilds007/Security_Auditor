@@ -47,7 +47,12 @@ describe('globe renderer', () => {
   it('only ever passes finite numbers to the canvas, across scenarios, states and camera angles', () => {
     for (let active = 0; active < SCENARIOS.length; active++) {
       for (const elapsed of [0, 500, PROTECT_MS - 1, PROTECT_MS + 200, 5000, Infinity]) {
-        for (const view of [{ lat: 20, lon: 78 }, { lat: 80, lon: -180 }, { lat: -60, lon: 179.9 }, { lat: 0, lon: 0 }]) {
+        for (const view of [
+          { lat: 20, lon: 78 },
+          { lat: 80, lon: -180 },
+          { lat: -60, lon: 179.9 },
+          { lat: 0, lon: 0 },
+        ]) {
           for (const extra of [
             {},
             { spot: { x: 0.3, y: -0.2 }, light: { x: 0.3, y: -0.2 }, hover: 1 },

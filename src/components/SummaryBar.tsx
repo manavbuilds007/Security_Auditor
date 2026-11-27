@@ -24,12 +24,18 @@ export default function SummaryBar({ result, redacted, hasText, csv }: Props) {
   const rejected = rejectedCounts.luhn + rejectedCounts.verhoeff;
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8" aria-label="Audit summary" aria-live="polite">
+    <div
+      className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8"
+      aria-label="Audit summary"
+      aria-live="polite"
+    >
       <div className="flex items-baseline gap-2">
         <span className="bg-linear-to-r from-emerald-600 to-cyan-600 bg-clip-text text-4xl font-bold leading-none tracking-tight text-transparent tabular">
           <AnimatedNumber value={redacted} />
         </span>
-        <span className="text-[15px] font-medium text-slate-800">{redacted === 1 ? 'item redacted' : 'items redacted'}</span>
+        <span className="text-[15px] font-medium text-slate-800">
+          {redacted === 1 ? 'item redacted' : 'items redacted'}
+        </span>
       </div>
 
       {/* One column on phones, so each note reads as a single sentence instead of splitting across narrow columns. */}
@@ -59,7 +65,8 @@ export default function SummaryBar({ result, redacted, hasText, csv }: Props) {
               <XCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             )}
             <span>
-              CSV {csv.rows} rows × {csv.columns} cols, delimiter <code className="font-mono">{csv.delimiter === '\t' ? '\\t' : csv.delimiter}</code>:{' '}
+              CSV {csv.rows} rows × {csv.columns} cols, delimiter{' '}
+              <code className="font-mono">{csv.delimiter === '\t' ? '\\t' : csv.delimiter}</code>:{' '}
               {csv.preserved ? 'structure preserved' : 'STRUCTURE CHANGED. Do not share this file.'}
             </span>
           </li>

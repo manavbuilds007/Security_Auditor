@@ -92,7 +92,11 @@ export default function ControlsBar(p: Props) {
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-[13px] font-medium text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 [&::-webkit-details-marker]:hidden">
           <span className="flex items-center gap-2">
             Advanced options
-            {changed && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">changed</span>}
+            {changed && (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                changed
+              </span>
+            )}
           </span>
           <ChevronDown className="h-4 w-4 transition-transform duration-200 group-open:rotate-180" aria-hidden />
         </summary>

@@ -58,11 +58,22 @@ export default function ExportBar({ output, fileName }: Props) {
               : 'Created locally in your browser. Nothing is uploaded.'}
         </p>
       </div>
-      <button type="button" className={`${btn} border border-slate-300 bg-white text-slate-800 hover:bg-slate-100`} onClick={copy} disabled={empty}>
+      <button
+        type="button"
+        className={`${btn} border border-slate-300 bg-white text-slate-800 hover:bg-slate-100`}
+        onClick={copy}
+        disabled={empty}
+      >
         {copied ? <Check className="h-4 w-4 text-emerald-600" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
         {copied ? 'Copied!' : 'Copy sanitized text'}
       </button>
-      <button type="button" className={`${btn} bg-emerald-600 text-white hover:bg-emerald-700`} onClick={download} disabled={empty} title={`Save as ${name}`}>
+      <button
+        type="button"
+        className={`${btn} bg-emerald-600 text-white hover:bg-emerald-700`}
+        onClick={download}
+        disabled={empty}
+        title={`Save as ${name}`}
+      >
         <Download className="h-4 w-4" aria-hidden /> Download {name}
       </button>
     </div>
